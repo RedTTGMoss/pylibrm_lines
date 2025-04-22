@@ -1,0 +1,23 @@
+[project]
+name = "pylibrm-lines"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "RedTTG",email = "red@redttg.com"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "rm-lines-sys (>=1.0.2,<2.0.0)"
+]
+
+[tool.poetry]
+packages = [{include = "pylibrm_lines", from = "src"}]
+
+
+[tool.poetry.group.dev.dependencies]
+rm-lines-sys = "^1.0.2"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
