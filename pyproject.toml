@@ -8,8 +8,9 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "rm-lines-sys (>=1.0.2,<2.0.0)",
-    "rm-api (>=1.0.0,<2.0.0)"
+    "rm-lines-sys (>=1.0.4,<2.0.0)",
+    "rm-api (>=1.0.3,<2.0.0)",
+    "pytest (>=8.3.5,<9.0.0)"
 ]
 
 [tool.poetry]
@@ -17,8 +18,8 @@ packages = [{include = "pylibrm_lines", from = "src"}]
 
 
 [tool.poetry.group.dev.dependencies]
-rm-lines-sys = "^1.0.2"
-rm-api = "^1.0.0"
+rm-lines-sys = "^1.0.4"
+rm-api = "^1.0.3"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

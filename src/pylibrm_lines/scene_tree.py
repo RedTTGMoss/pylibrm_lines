@@ -33,7 +33,9 @@ class SceneTree:
     @classmethod
     def from_document(cls, document: Document, page_uuid: str):
         new = cls(document=document, page_uuid=page_uuid)
-        if file := new.document.files_available.get(page_uuid) is None:
+        page_file_uuid = f'{document.uuid}/{page_uuid}.rm'
+        file = new.document.files_available.get(page_file_uuid)
+        if file is None:
             raise FileNotFoundError("Could not find the lines file for this page_uuid")
         file_path = os.path.join(new.api.sync_file_path, file.hash)
 
