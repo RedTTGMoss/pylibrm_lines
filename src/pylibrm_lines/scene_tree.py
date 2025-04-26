@@ -1,5 +1,8 @@
+import json
 import os
-from typing import Optional
+import tempfile
+from pathlib import Path
+from typing import Optional, Union
 
 from rm_api import Document, API
 from rm_lines_sys import lib
@@ -45,3 +48,22 @@ class SceneTree:
             raise FailedToBuildTree()
 
         return new
+
+    def to_json_file(self, output_file: Union[os.PathLike, str]):
+        lib.convertToJson(self.uuid, os.fspath(output_file).encode())
+
+    def to_json_raw(self) -> str:
+        temp_file = tempfile.mktemp()
+        self.to_json_file(temp_file)
+        with open(temp_file, 'r') as f:
+            raw = f.read()
+        os.remove(temp_file)
+        return raw
+
+    def to_dict(self) -> dict:
+        temp_file = tempfile.mktemp()
+        self.to_json_file(temp_file)
+        with open(temp_file, 'r') as f:
+            result = json.load(f)
+        os.remove(temp_file)
+        return result
