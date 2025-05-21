@@ -83,8 +83,8 @@ jobs:
         run: |
           poetry run pytest tests --tb=short --disable-warnings -p no:warnings --maxfail=1
         env:
-            CLOUD_URI: ${{ secrets.CLOUD_URI }}
-            TOKEN: ${{ secrets.TOKEN }}
+            CLOUD_URI: "${{ secrets.CLOUD_URI }}"
+            TOKEN: "${{ secrets.TOKEN }}"
 
       - name: Build with poetry
         shell: bash
