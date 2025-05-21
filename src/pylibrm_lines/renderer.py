@@ -1,13 +1,15 @@
 import json
 import os
+from ctypes import c_uint32
 from enum import Enum
-from typing import List, Optional, TYPE_CHECKING, Union
+from typing import List, Optional, TYPE_CHECKING, Union, Tuple
 
-from rm_api.defaults import DocumentTypes, FileTypes
+from rm_api.defaults import DocumentTypes, FileTypes, RM_SCREEN_SIZE
 from rm_lines_sys import lib
 
 from .exceptions import FailedToConvertToMd, FailedToConvertToTxt
 from .text import Paragraph
+from PIL import Image
 
 if TYPE_CHECKING:
     from .scene_tree import SceneTree
@@ -39,6 +41,13 @@ class Renderer:
         self.uuid = lib.makeRenderer(self.scene_tree.uuid, page_type.value, landscape)
 
         self._update_paragraphs()
+
+    @property
+    def paper_size(self) -> Tuple[int, int]:
+        if self.scene_tree.scene_info and self.scene_tree.scene_info.paper_size:
+            return self.scene_tree.scene_info.paper_size
+        else:
+            return RM_SCREEN_SIZE
 
     def get_paragraphs_raw(self) -> Optional[bytes]:
         raw = lib.getParagraphs(self.uuid)
@@ -88,3 +97,22 @@ class Renderer:
         if raw == b'':
             raise FailedToConvertToTxt()
         return raw.decode()
+
+    def get_frame_raw(self, x: int, y: int, frame_width: int, frame_height: int, width: int, height: int,
+                      antialias: bool = False) -> bytes:
+        buffer_size = width * height
+        buffer = (c_uint32 * buffer_size)()
+
+        lib.getFrame(self.uuid, buffer, buffer_size * 4, x, y, frame_width, frame_height, width, height, antialias)
+        return bytes(buffer)
+
+    def to_image_raw(self, antialias: bool = False) -> Tuple[bytes, Tuple[int, int]]:
+        return self.get_frame_raw(0, 0, *self.paper_size, *self.paper_size, antialias), self.paper_size
+
+    def to_image(self, antialias: bool = False) -> Image.Image:
+        raw_frame, size = self.to_image_raw(antialias)
+        return Image.frombytes('RGBA', size, raw_frame, 'raw', 'RGBA')
+
+    def to_image_file(self, output_file: Union[os.PathLike, str], antialias: bool = False, image_format: str = 'PNG'):
+        image = self.to_image(antialias)
+        image.save(os.fspath(output_file), image_format)

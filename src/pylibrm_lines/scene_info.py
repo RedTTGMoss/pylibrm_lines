@@ -53,7 +53,7 @@ class SceneInfo:
         return self._scene_info["rootDocumentVisible"]
 
     @property
-    def paper_size(self) -> Optional[List[int]]:
+    def paper_size(self) -> Optional[Tuple[int, int]]:
         """
         This is a new value for the size of the page/paper as it's called by rM.
         It is used by RMPP to signal that it is larger sized. It is generally blank for RM2

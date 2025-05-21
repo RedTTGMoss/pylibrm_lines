@@ -27,6 +27,7 @@ os.makedirs(PDF_DIRECTORY, exist_ok=True)
 os.makedirs(MD_DIRECTORY, exist_ok=True)
 os.makedirs(TXT_DIRECTORY, exist_ok=True)
 
+
 class BaseTest(unittest.TestCase):
     api: API
     trees: List[SceneTree]
@@ -68,3 +69,8 @@ class BaseTest(unittest.TestCase):
                 continue
             filename = renderer.scene_tree.page_uuid + '.txt'
             renderer.to_txt_file(os.path.join(TXT_DIRECTORY / filename))
+
+    def test_104_renderer_to_png_file(self):
+        for renderer in self.renderers:
+            filename = renderer.scene_tree.page_uuid + '.png'
+            renderer.to_image_file(os.path.join(PNG_DIRECTORY / filename))
