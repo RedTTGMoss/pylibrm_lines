@@ -1,6 +1,5 @@
 import os
 import unittest
-import hashlib
 from abc import ABC
 from typing import List
 
@@ -46,9 +45,6 @@ class BaseTest(unittest.TestCase):
         uri = os.environ.get("CLOUD_URI")
         if not os.environ.get("TOKEN"):
             raise ValueError("Please set the `TOKEN` environment variable.")
-        print("HASHES OF TOKEN AND URI\n"
-              f"URI: {hashlib.sha256(uri.encode()).hexdigest()}\n"
-              f"TOKEN: {hashlib.sha256(os.environ.get('TOKEN').encode()).hexdigest()}")
         try:
             cls.api = API(uri=uri, discovery_uri=uri, require_token=False)
         except FailedToRefreshToken:
