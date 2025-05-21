@@ -5,6 +5,9 @@ from typing import List
 
 from rm_api import API
 from pathlib import Path
+
+from rm_api.auth import FailedToRefreshToken
+
 from src.pylibrm_lines import SceneTree
 from src.pylibrm_lines.renderer import Renderer
 from src.pylibrm_lines.scene_info import SceneInfo
@@ -42,7 +45,10 @@ class BaseTest(unittest.TestCase):
         uri = os.environ.get("CLOUD_URI")
         if not os.environ.get("TOKEN"):
             raise ValueError("Please set the `TOKEN` environment variable.")
-        cls.api = API(uri=uri, discovery_uri=uri)
+        try:
+            cls.api = API(uri=uri, discovery_uri=uri, require_token=False)
+        except FailedToRefreshToken:
+            raise ValueError("Failed to refresh token. Please check your token.")
         cls.api.get_documents()
         cls.trees = []
         cls.renderers = []

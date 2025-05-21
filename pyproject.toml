@@ -1,6 +1,6 @@
 [project]
 name = "pylibrm-lines"
-version = "0.1.0"
+version = "0.0.0+replaced-by-ci"
 description = ""
 authors = [
     {name = "RedTTG",email = "red@redttg.com"}
@@ -10,7 +10,6 @@ requires-python = ">=3.13"
 dependencies = [
     "rm-lines-sys (>=1.2.0,<2.0.0)",
     "rm-api (>=1.0.3,<2.0.0)",
-    "pytest (>=8.3.5,<9.0.0)",
     "pillow (>=11.2.1,<12.0.0)"
 ]
 
@@ -22,6 +21,7 @@ packages = [{include = "pylibrm_lines", from = "src"}]
 rm-lines-sys = "^1.2.0"
 rm-api = "^1.0.3"
 pillow = "^11.2.1"
+pytest = "^8.3.5"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
