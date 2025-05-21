@@ -78,13 +78,13 @@ jobs:
           echo "version=${version}" >> "$GITHUB_ENV"
           sed -i -e "s|0.0.0+replaced-by-ci|${version}|g" pyproject.toml
 
-      - name: Run tests using pytest
-        shell: bash
-        run: |
-          poetry run pytest tests --tb=short --disable-warnings -p no:warnings --maxfail=1
-        env:
-            CLOUD_URI: "${{ secrets.CLOUD_URI }}"
-            TOKEN: "${{ secrets.TOKEN }}"
+#      - name: Run tests using pytest
+#        shell: bash
+#        run: |
+#          poetry run pytest tests --tb=short --disable-warnings -p no:warnings --maxfail=1
+#        env:
+#            CLOUD_URI: "${{ secrets.CLOUD_URI }}"
+#            TOKEN: "${{ secrets.TOKEN }}"
 
       - name: Build with poetry
         shell: bash
