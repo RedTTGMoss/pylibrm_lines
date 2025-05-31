@@ -1,13 +1,11 @@
 import json
 import os
-import tempfile
-from pathlib import Path
-from typing import Optional, Union, List
+from typing import Optional, Union
 
 from rm_api import Document, API
 from rm_lines_sys import lib
 
-from .scene_info import SceneInfo, NoSceneInfo
+from .scene_info import SceneInfo
 from .exceptions import *
 
 
@@ -25,6 +23,7 @@ class SceneTree:
         self.document = document
         self.page_uuid = page_uuid
         self._paragraphs = None
+        self._renderer = None
         self._scene_info = None
 
     @property
@@ -46,6 +45,26 @@ class SceneTree:
             raise FailedToBuildTree()
 
         return new
+
+    @property
+    def renderer(self):
+        if not self._renderer:
+            from .renderer import Renderer
+            self._renderer = Renderer(self)
+        return self._renderer
+
+    @renderer.setter
+    def renderer(self, value):
+        from .renderer import Renderer
+        if not isinstance(value, Renderer):
+            raise TypeError("Renderer must be an instance of Renderer class")
+        self._renderer = value
+
+    @renderer.deleter
+    def renderer(self):
+        if self._renderer:
+            self._renderer.destroy()
+            self._renderer = None
 
     def to_json_file(self, output_file: Union[os.PathLike, str]):
         success = lib.convertToJsonFile(self.uuid, os.fspath(output_file).encode())
@@ -70,3 +89,14 @@ class SceneTree:
             except NoSceneInfo:
                 return None
         return self._scene_info
+
+    def destroy(self):
+        """Destroying the scene tree will also destroy the renderer if it exists."""
+        if not self.uuid:
+            raise ValueError("Could not destroy tree, uuid is empty")
+        del self.renderer
+        lib.destroyTree(self.uuid)
+        self.uuid = b''
+
+    def __del__(self):
+        self.destroy()

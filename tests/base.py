@@ -53,6 +53,13 @@ class BaseTest(unittest.TestCase):
         cls.trees = []
         cls.renderers = []
 
+    @classmethod
+    def tearDownClass(cls):
+        super(BaseTest, cls).tearDownClass()
+
+        for tree in cls.trees:
+            tree.destroy()
+
     def test_100_tree_to_json_file(self):
         for tree in self.trees:
             filename = tree.page_uuid + '.json'

@@ -18,3 +18,7 @@ class FailedToConvertToMd(Exception):
 class FailedToConvertToTxt(Exception):
     def __init__(self):
         super().__init__("An issue occurred while rendering to txt")
+
+class NoSceneInfo(Exception):
+    def __init__(self):
+        super().__init__("The scene tree has no scene info.")

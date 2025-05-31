@@ -39,6 +39,7 @@ class Renderer:
             else:
                 raise ValueError("Missing value for page_type and cannot infer from document type")
         self.uuid = lib.makeRenderer(self.scene_tree.uuid, page_type.value, landscape)
+        self.scene_tree.renderer = self
 
         self._update_paragraphs()
 
@@ -116,3 +117,12 @@ class Renderer:
     def to_image_file(self, output_file: Union[os.PathLike, str], antialias: bool = False, image_format: str = 'PNG'):
         image = self.to_image(antialias)
         image.save(os.fspath(output_file), image_format)
+
+    def destroy(self):
+        if not self.uuid:
+            return
+        lib.destroyRenderer(self.uuid)
+        self.uuid = b''
+
+    def __del__(self):
+        self.destroy()

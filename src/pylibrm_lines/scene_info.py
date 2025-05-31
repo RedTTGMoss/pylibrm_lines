@@ -3,13 +3,10 @@ from typing import TYPE_CHECKING, Tuple, List, Optional
 
 from rm_lines_sys import lib
 
+from .exceptions import NoSceneInfo
+
 if TYPE_CHECKING:
     from scene_tree import SceneTree
-
-
-class NoSceneInfo(Exception):
-    def __init__(self):
-        super().__init__("The scene tree has no scene info.")
 
 
 class SceneInfo:
