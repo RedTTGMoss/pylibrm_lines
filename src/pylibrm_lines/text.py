@@ -6,6 +6,7 @@ from typing import List, TYPE_CHECKING
 if TYPE_CHECKING:
     from .renderer import Renderer
 
+
 @dataclass
 class TextFormattingOptions:
     bold: bool
@@ -15,6 +16,7 @@ class TextFormattingOptions:
     def from_dict(cls, data: dict):
         return cls(**data)
 
+
 class FormattedText:
     renderer: 'Renderer'
     text: str
@@ -22,8 +24,8 @@ class FormattedText:
 
     def __init__(self, renderer: 'Renderer', text: str, formatting: TextFormattingOptions):
         self.renderer = renderer
-        self.text = text
-        self.formatting = formatting
+        self._text = text
+        self._formatting = formatting
 
     @classmethod
     def from_dict(cls, renderer, formatted_text):
@@ -32,6 +34,14 @@ class FormattedText:
             formatted_text['text'],
             TextFormattingOptions.from_dict(formatted_text['formatting']),
         )
+
+    @property
+    def text(self) -> str:
+        return self._text
+
+    @property
+    def formatting(self) -> TextFormattingOptions:
+        return self._formatting
 
 
 class ParagraphStyle(Enum):
@@ -44,6 +54,7 @@ class ParagraphStyle(Enum):
     CHECKBOX = 6
     CHECKBOX_CHECKED = 7
 
+
 class Paragraph:
     renderer: 'Renderer'
     contents: List[FormattedText]
@@ -52,9 +63,9 @@ class Paragraph:
 
     def __init__(self, renderer: 'Renderer', contents: List[FormattedText], start_id: str, style: ParagraphStyle):
         self.renderer = renderer
-        self.contents = contents
-        self.start_id = start_id
-        self.style = style
+        self._contents = contents
+        self._start_id = start_id
+        self._style = style
 
     @classmethod
     def from_dict(cls, renderer: 'Renderer', paragraph):
@@ -64,3 +75,15 @@ class Paragraph:
             paragraph['startId'],
             ParagraphStyle(paragraph['style'])
         )
+
+    @property
+    def contents(self) -> List[FormattedText]:
+        return self._contents
+
+    @property
+    def start_id(self) -> str:
+        return self._start_id
+
+    @property
+    def style(self) -> ParagraphStyle:
+        return self._style

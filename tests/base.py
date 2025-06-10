@@ -87,3 +87,16 @@ class BaseTest(unittest.TestCase):
         for renderer in self.renderers:
             filename = renderer.scene_tree.page_uuid + '.png'
             renderer.to_image_file(os.path.join(PNG_DIRECTORY / filename))
+
+    def test_105_renderer_get_layers(self):
+        for renderer in self.renderers:
+            layers = renderer.layers
+            for layer in layers:
+                from_uuid = renderer.get_layer_by_uuid(layer.uuid)
+                self.assertEqual(layer, from_uuid, f"Layer {layer.uuid} not found in renderer layers")
+
+    def test_106_renderer_get_size_tracker(self):
+        for renderer in self.renderers:
+            for layer in renderer.layers:
+                size_tracker = layer.size_tracker
+                self.assertIsNotNone(size_tracker, f"Size tracker for layer {layer.uuid} is None")
