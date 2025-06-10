@@ -8,7 +8,7 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "rm-lines-sys (>=1.2.1,<2.0.0)",
+    "rm-lines-sys (>=1.2.2,<2.0.0)",
     "rm-api (>=1.0.3,<2.0.0)",
     "pillow (>=11.2.1,<12.0.0)"
 ]
