@@ -3,6 +3,8 @@ import unittest
 from abc import ABC
 from typing import List
 
+from PIL import Image
+from pygameextra import Rect
 from rm_api import API
 from pathlib import Path
 
@@ -16,6 +18,7 @@ from src.pylibrm_lines.text import ParagraphStyle
 RESULTS_DIRECTORY = Path('results')
 JSON_DIRECTORY = RESULTS_DIRECTORY / 'json'
 PNG_DIRECTORY = RESULTS_DIRECTORY / 'png'
+ZOOM_DIRECTORY = RESULTS_DIRECTORY / 'zoom'
 SVG_DIRECTORY = RESULTS_DIRECTORY / 'svg'
 PDF_DIRECTORY = RESULTS_DIRECTORY / 'pdf'
 MD_DIRECTORY = RESULTS_DIRECTORY / 'md'
@@ -25,6 +28,7 @@ TXT_DIRECTORY = RESULTS_DIRECTORY / 'txt'
 os.makedirs(RESULTS_DIRECTORY, exist_ok=True)
 os.makedirs(JSON_DIRECTORY, exist_ok=True)
 os.makedirs(PNG_DIRECTORY, exist_ok=True)
+os.makedirs(ZOOM_DIRECTORY, exist_ok=True)
 os.makedirs(SVG_DIRECTORY, exist_ok=True)
 os.makedirs(PDF_DIRECTORY, exist_ok=True)
 os.makedirs(MD_DIRECTORY, exist_ok=True)
@@ -100,3 +104,39 @@ class BaseTest(unittest.TestCase):
             for layer in renderer.layers:
                 size_tracker = layer.size_tracker
                 self.assertIsNotNone(size_tracker, f"Size tracker for layer {layer.uuid} is None")
+
+    def test_107_render_scaled(self):
+        for renderer in self.renderers:
+            initial_rect = Rect(0, 0, *renderer.paper_size)
+            rect = initial_rect.scale_by(2, 2)  # Zoomed out, aka 0.5x scale
+            print(f"Initial rect: {initial_rect}, Zoomed out rect: {rect}")
+
+            normal_raw = renderer.get_frame_raw(*initial_rect.topleft, *initial_rect.size, *renderer.paper_size)
+            normal_image = Image.frombytes('RGBA', renderer.paper_size, normal_raw, 'raw', 'RGBA')
+
+            zoomed_out_raw = renderer.get_frame_raw(*rect.topleft, *rect.size, *renderer.paper_size)
+            zoomed_out_image = Image.frombytes('RGBA', renderer.paper_size, zoomed_out_raw, 'raw', 'RGBA')
+
+            rect = initial_rect.scale_by(0.5, 0.5)  # Zoomed in, aka 2x scale
+            print(f"Zoomed in rect: {rect}")
+
+            zoomed_in_raw = renderer.get_frame_raw(*rect.topleft, *rect.size, *renderer.paper_size)
+            zoomed_in_image = Image.frombytes('RGBA', renderer.paper_size, zoomed_in_raw, 'raw', 'RGBA')
+
+            # Join the images into one combined image for comparison
+            combined_image = Image.new('RGB', (renderer.paper_size[0] * 3, renderer.paper_size[1]))
+
+            combined_image.paste(normal_image, (0, 0))
+            combined_image.paste(zoomed_out_image, (renderer.paper_size[0], 0))
+            combined_image.paste(zoomed_in_image, (renderer.paper_size[0]*2, 0))
+
+            for y in range(renderer.paper_size[1]):
+                combined_image.putpixel((renderer.paper_size[0]-1, y), (150, 0, 0, 255))
+                combined_image.putpixel((renderer.paper_size[0], y), (255, 0, 0, 255))
+                combined_image.putpixel((renderer.paper_size[0]+1, y), (150, 0, 0, 255))
+
+                combined_image.putpixel((renderer.paper_size[0]*2-1, y), (0, 0, 150, 255))
+                combined_image.putpixel((renderer.paper_size[0]*2, y), (0, 0, 255, 255))
+                combined_image.putpixel((renderer.paper_size[0]*2+1, y), (0, 0, 150, 255))
+
+            combined_image.save(ZOOM_DIRECTORY / f"{renderer.scene_tree.page_uuid}.png")
