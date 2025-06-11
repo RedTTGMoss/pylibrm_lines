@@ -22,6 +22,7 @@ rm-lines-sys = "^1.2.3"
 rm-api = "^1.0.3"
 pillow = "^11.2.1"
 pytest = "^8.3.5"
+pygameextra = "^2.0.84"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
