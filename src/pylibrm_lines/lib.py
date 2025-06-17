@@ -7,10 +7,38 @@ However, these are basic functions that shouldn't fail under normal circumstance
 """
 
 import ctypes
+from typing import Callable, Optional
 
 from rm_lines_sys import lib
 
-def setDebugMode(debug: bool):
+LOG_FUNCTION_TYPE = Callable[[str], None]
+LOG_FUNC: Optional[LOG_FUNCTION_TYPE] = None
+ERR_FUNC: Optional[LOG_FUNCTION_TYPE] = None
+DEBUG_FUNC: Optional[LOG_FUNCTION_TYPE] = None
+
+
+@ctypes.CFUNCTYPE(None, ctypes.c_char_p)
+def python_log_logger(msg):
+    if LOG_FUNC is None:
+        pass
+    LOG_FUNC(msg.decode('utf-8', errors='replace'))
+
+
+@ctypes.CFUNCTYPE(None, ctypes.c_char_p)
+def python_error_logger(msg):
+    if ERR_FUNC is None:
+        pass
+    ERR_FUNC(msg.decode('utf-8', errors='replace'))
+
+
+@ctypes.CFUNCTYPE(None, ctypes.c_char_p)
+def python_debug_logger(msg):
+    if DEBUG_FUNC is None:
+        pass
+    DEBUG_FUNC(msg.decode('utf-8', errors='replace'))
+
+
+def set_debug_mode(debug: bool):
     """
     Set the debug mode for the library.
     This will enable both debug logging and debug rendering.
@@ -19,7 +47,8 @@ def setDebugMode(debug: bool):
     """
     lib.setDebugMode(debug)
 
-def getDebugMode() -> bool:
+
+def get_debug_mode() -> bool:
     """
     Check if the library is in debug mode.
 
@@ -27,33 +56,36 @@ def getDebugMode() -> bool:
     """
     return lib.getDebugMode()
 
-def setLogger(func: callable):
+
+def set_logger(func: LOG_FUNCTION_TYPE):
     """
     Set a custom logging function for the library.
 
     :param func: A callable that takes a string message as an argument.
     """
 
-    @ctypes.CFUNCTYPE(None, ctypes.c_char_p)
-    def python_logger(msg):
-        func(msg.decode('utf-8', errors='replace'))
+    global LOG_FUNC
 
-    lib.setLogger(python_logger)
+    LOG_FUNC = func
 
-def setErrorLogger(func: callable):
+    lib.setLogger(python_log_logger)
+
+
+def set_error_logger(func: LOG_FUNCTION_TYPE):
     """
     Set a custom error logging function for the library.
 
     :param func: A callable that takes a string message as an argument.
     """
 
-    @ctypes.CFUNCTYPE(None, ctypes.c_char_p)
-    def python_logger(msg):
-        func(msg.decode('utf-8', errors='replace'))
+    global ERR_FUNC
 
-    lib.setErrorLogger(python_logger)
+    ERR_FUNC = func
 
-def setDebugLogger(func: callable):
+    lib.setErrorLogger(python_error_logger)
+
+
+def set_debug_logger(func: LOG_FUNCTION_TYPE):
     """
     Set a custom debug logging function for the library.
     Debug messages are verbose but are only triggered if debug mode is enabled.
@@ -61,8 +93,8 @@ def setDebugLogger(func: callable):
     :param func: A callable that takes a string message as an argument.
     """
 
-    @ctypes.CFUNCTYPE(None, ctypes.c_char_p)
-    def python_logger(msg):
-        func(msg.decode('utf-8', errors='replace'))
+    global DEBUG_FUNC
 
-    lib.setDebugLogger(python_logger)
+    DEBUG_FUNC = func
+
+    lib.setDebugLogger(python_debug_logger)
