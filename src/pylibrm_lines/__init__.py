@@ -13,7 +13,7 @@ from .exceptions import (
     FailedToConvertToTxt,
     NoSceneInfo,
 )
-from .scene_info import SceneInfo, SceneTree, NoSceneInfo
+from .scene_info import SceneInfo, NoSceneInfo
 from .text import TextFormattingOptions, FormattedText
 from .lib import get_debug_mode, set_debug_mode, set_logger, set_error_logger, set_debug_logger
 
@@ -30,7 +30,6 @@ __all__ = [
     'FailedToConvertToTxt',
     'NoSceneInfo',
     'SceneInfo',
-    'SceneTree',
     'NoSceneInfo',
     'TextFormattingOptions',
     'FormattedText',
