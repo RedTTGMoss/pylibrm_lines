@@ -99,4 +99,7 @@ class SceneTree:
         self.uuid = b''
 
     def __del__(self):
-        self.destroy()
+        """Deleting the scene tree calls the library to destroy the tree."""
+        if not self.uuid:
+            return
+        lib.destroyTree(self.uuid)
