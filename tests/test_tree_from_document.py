@@ -19,3 +19,12 @@ class TestTreeFromDocument(BaseTest):
     def test_002_renderer_from_document(self):
         for tree in self.trees:
             self.renderers.append(Renderer(tree))
+
+    def test_003_missing_page(self):
+        try:
+            SceneTree.from_document(self.trees[-1].document, 'non_existent_page_uuid')
+        except FileNotFoundError:
+            pass
+        else:
+            self.fail("Expected FileNotFoundError for non-existent page UUID")
+
