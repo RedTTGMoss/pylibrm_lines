@@ -144,6 +144,7 @@ class Renderer:
         self.scene_tree = scene_tree
         self._paragraphs = None
         self._layers = None
+        self._template = 'Blank'
         self._layers_index = {}
         if not landscape:
             if scene_tree.document:
@@ -167,6 +168,15 @@ class Renderer:
             return self.scene_tree.scene_info.paper_size
         else:
             return RM_SCREEN_SIZE
+
+    @property
+    def template(self) -> str:
+        return self._template
+
+    @template.setter
+    def template(self, value: str):
+        lib.setTemplate(self.uuid, value.encode())
+        self._template = value
 
     def get_paragraphs_raw(self) -> Optional[bytes]:
         raw = lib.getParagraphs(self.uuid)
