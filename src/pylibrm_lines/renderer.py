@@ -156,8 +156,13 @@ class Renderer:
                 page_type = PageType.Notebook if scene_tree.document.content.file_type == FileTypes.Notebook.value else PageType.Document
             else:
                 raise ValueError("Missing value for page_type and cannot infer from document type")
+
         self.uuid = lib.makeRenderer(self.scene_tree.uuid, page_type.value, landscape)
+        self.landscape = landscape
+        self.page_type = page_type
         self.scene_tree.renderer = self
+        if scene_tree.document:
+            self.template = scene_tree.document.content.c_pages.get_page_from_uuid(scene_tree.page_uuid).template.value
 
         self._update_paragraphs()
         self._update_layers()
@@ -165,9 +170,12 @@ class Renderer:
     @property
     def paper_size(self) -> Tuple[int, int]:
         if self.scene_tree.scene_info and self.scene_tree.scene_info.paper_size:
-            return self.scene_tree.scene_info.paper_size
+            paper_size = self.scene_tree.scene_info.paper_size
         else:
-            return RM_SCREEN_SIZE
+            paper_size = RM_SCREEN_SIZE
+        if self.landscape:
+            return paper_size[1], paper_size[0]
+        return paper_size
 
     @property
     def template(self) -> str:

@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 class TextFormattingOptions:
     bold: bool
     italic: bool
+    deletedLength: int
 
     @classmethod
     def from_dict(cls, data: dict):
@@ -53,6 +54,38 @@ class ParagraphStyle(Enum):
     BULLET2 = 5
     CHECKBOX = 6
     CHECKBOX_CHECKED = 7
+    CHECKBOX_TAB = 8
+    CHECKBOX_TAB_CHECKED = 9
+    NUMBERED = 10
+    NUMBERED_TAB = 11
+
+
+class ParagraphStyleNew:
+    legacy_style: ParagraphStyle
+
+    def __init__(self, legacy_style: ParagraphStyle, base_style: int, style_properties: int, tab_offset: float,
+                 tabbed: int, is_legacy: bool = True):
+        self.legacy_style = legacy_style
+        self.base_style = base_style
+        self.style_properties = style_properties
+        self.tab_offset = tab_offset
+        self.tabbed = tabbed
+        self.is_legacy = is_legacy
+        self.extra = {}
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        new = cls(
+            ParagraphStyle(data.get('legacyStyle')),
+            data.get('baseStyle'),
+            data.get('styleProperties'),
+            data.get('tabOffset'),
+            data.get('tabbed'),
+            is_legacy=data.get('isLegacy', True),
+        )
+        new.extra['_fontSize'] = data.get('_fontSize')
+        new.extra['_styleHeight'] = data.get('_styleHeight')
+        new.extra['_styleLabel'] = data.get('_styleLabel')
 
 
 class Paragraph:
@@ -61,7 +94,7 @@ class Paragraph:
     start_id: str
     style: ParagraphStyle
 
-    def __init__(self, renderer: 'Renderer', contents: List[FormattedText], start_id: str, style: ParagraphStyle):
+    def __init__(self, renderer: 'Renderer', contents: List[FormattedText], start_id: str, style: ParagraphStyleNew):
         self.renderer = renderer
         self._contents = contents
         self._start_id = start_id
@@ -73,7 +106,7 @@ class Paragraph:
             renderer,
             [FormattedText.from_dict(renderer, formatted_text) for formatted_text in paragraph['contents']],
             paragraph['startId'],
-            ParagraphStyle(paragraph['style'])
+            ParagraphStyleNew.from_dict(paragraph['style'])
         )
 
     @property

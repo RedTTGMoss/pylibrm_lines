@@ -37,7 +37,7 @@ class SceneTree:
         file = new.document.files_available.get(page_file_uuid)
         if file is None:
             raise FileNotFoundError("Could not find the lines file for this page_uuid")
-        file_path = os.path.join(new.api.sync_file_path, file.hash)
+        file_path = new.document.get_file(file.hash)
 
         new.uuid = lib.buildTree(file_path.encode())
 

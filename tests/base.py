@@ -5,7 +5,7 @@ from typing import List
 
 from PIL import Image
 from pygameextra import Rect
-from rm_api import API
+from rm_api.models import LocalDocument
 from pathlib import Path
 
 from rm_api.auth import FailedToRefreshToken
@@ -15,7 +15,9 @@ from src.pylibrm_lines.renderer import Renderer
 from src.pylibrm_lines.scene_info import SceneInfo
 from src.pylibrm_lines.text import ParagraphStyle
 
-RESULTS_DIRECTORY = Path('results')
+SOURCE_DIR = Path(__file__).parent.parent
+RESULTS_DIRECTORY = SOURCE_DIR / 'results'
+TESTS_DIRECTORY = SOURCE_DIR / 'tests' / 'files'
 JSON_DIRECTORY = RESULTS_DIRECTORY / 'json'
 PNG_DIRECTORY = RESULTS_DIRECTORY / 'png'
 ZOOM_DIRECTORY = RESULTS_DIRECTORY / 'zoom'
@@ -36,26 +38,31 @@ os.makedirs(TXT_DIRECTORY, exist_ok=True)
 
 
 class BaseTest(unittest.TestCase):
-    api: API
+    documents: List[LocalDocument]
     trees: List[SceneTree]
     renderers: List[Renderer]
 
     @classmethod
     def setUpClass(cls):
         if cls is BaseTest:
-            raise unittest.SkipTest("Skip BaseTest tests, it's a base class")
+            raise unittest.SkipTest('')  # Skip BaseTest tests, it's a base class
         super(BaseTest, cls).setUpClass()
 
-        uri = os.environ.get("CLOUD_URI")
-        if not os.environ.get("TOKEN"):
-            raise ValueError("Please set the `TOKEN` environment variable.")
-        try:
-            cls.api = API(uri=uri, discovery_uri=uri, require_token=False)
-        except FailedToRefreshToken:
-            raise ValueError("Failed to refresh token. Please check your token.")
-        cls.api.get_documents()
+        # LOAD DOCUMENTS USING NEW DOCUMENT LOADING METHOD
+        cls.documents = []
+        result_dirs = [os.path.join(RESULTS_DIRECTORY, d) for d in os.listdir(RESULTS_DIRECTORY) if
+                       os.path.isdir(os.path.join(RESULTS_DIRECTORY, d))]
+
+        for file in os.listdir(TESTS_DIRECTORY):
+            cls.documents.append(LocalDocument.load_rmdoc(os.path.join(TESTS_DIRECTORY, file)))
+            for result_dir in result_dirs:
+                os.makedirs(os.path.join(result_dir, cls.documents[-1].metadata.visible_name), exist_ok=True)
+
         cls.trees = []
         cls.renderers = []
+
+    def get_filename(self, renderer: Renderer):
+        return f"{renderer.scene_tree.document.metadata.visible_name}/{renderer.scene_tree.page_uuid}"
 
     @classmethod
     def tearDownClass(cls):
@@ -77,19 +84,19 @@ class BaseTest(unittest.TestCase):
         for renderer in self.renderers:
             if not renderer.paragraphs:
                 continue
-            filename = renderer.scene_tree.page_uuid + '.md'
+            filename = self.get_filename(renderer) + '.md'
             renderer.to_md_file(os.path.join(MD_DIRECTORY / filename))
 
     def test_103_renderer_to_txt_file(self):
         for renderer in self.renderers:
             if not renderer.paragraphs:
                 continue
-            filename = renderer.scene_tree.page_uuid + '.txt'
+            filename = self.get_filename(renderer) + '.txt'
             renderer.to_txt_file(os.path.join(TXT_DIRECTORY / filename))
 
     def test_104_renderer_to_png_file(self):
         for renderer in self.renderers:
-            filename = renderer.scene_tree.page_uuid + '.png'
+            filename = self.get_filename(renderer) + '.png'
             renderer.to_image_file(os.path.join(PNG_DIRECTORY / filename))
 
     def test_105_renderer_get_layers(self):
@@ -109,7 +116,7 @@ class BaseTest(unittest.TestCase):
         for renderer in self.renderers:
             initial_rect = Rect(0, 0, *renderer.paper_size)
             rect = initial_rect.scale_by(2, 2)  # Zoomed out, aka 0.5x scale
-            print(f"Initial rect: {initial_rect}, Zoomed out rect: {rect}")
+            # print(f"Initial rect: {initial_rect}, Zoomed out rect: {rect}")
 
             normal_raw = renderer.get_frame_raw(*initial_rect.topleft, *initial_rect.size, *renderer.paper_size)
             normal_image = Image.frombytes('RGBA', renderer.paper_size, normal_raw, 'raw', 'RGBA')
@@ -118,7 +125,7 @@ class BaseTest(unittest.TestCase):
             zoomed_out_image = Image.frombytes('RGBA', renderer.paper_size, zoomed_out_raw, 'raw', 'RGBA')
 
             rect = initial_rect.scale_by(0.5, 0.5)  # Zoomed in, aka 2x scale
-            print(f"Zoomed in rect: {rect}")
+            # print(f"Zoomed in rect: {rect}")
 
             zoomed_in_raw = renderer.get_frame_raw(*rect.topleft, *rect.size, *renderer.paper_size)
             zoomed_in_image = Image.frombytes('RGBA', renderer.paper_size, zoomed_in_raw, 'raw', 'RGBA')
@@ -128,15 +135,15 @@ class BaseTest(unittest.TestCase):
 
             combined_image.paste(normal_image, (0, 0))
             combined_image.paste(zoomed_out_image, (renderer.paper_size[0], 0))
-            combined_image.paste(zoomed_in_image, (renderer.paper_size[0]*2, 0))
+            combined_image.paste(zoomed_in_image, (renderer.paper_size[0] * 2, 0))
 
             for y in range(renderer.paper_size[1]):
-                combined_image.putpixel((renderer.paper_size[0]-1, y), (150, 0, 0, 255))
+                combined_image.putpixel((renderer.paper_size[0] - 1, y), (150, 0, 0, 255))
                 combined_image.putpixel((renderer.paper_size[0], y), (255, 0, 0, 255))
-                combined_image.putpixel((renderer.paper_size[0]+1, y), (150, 0, 0, 255))
+                combined_image.putpixel((renderer.paper_size[0] + 1, y), (150, 0, 0, 255))
 
-                combined_image.putpixel((renderer.paper_size[0]*2-1, y), (0, 0, 150, 255))
-                combined_image.putpixel((renderer.paper_size[0]*2, y), (0, 0, 255, 255))
-                combined_image.putpixel((renderer.paper_size[0]*2+1, y), (0, 0, 150, 255))
+                combined_image.putpixel((renderer.paper_size[0] * 2 - 1, y), (0, 0, 150, 255))
+                combined_image.putpixel((renderer.paper_size[0] * 2, y), (0, 0, 255, 255))
+                combined_image.putpixel((renderer.paper_size[0] * 2 + 1, y), (0, 0, 150, 255))
 
-            combined_image.save(ZOOM_DIRECTORY / f"{renderer.scene_tree.page_uuid}.png")
+            combined_image.save(ZOOM_DIRECTORY / f"{self.get_filename(renderer)}.png")
