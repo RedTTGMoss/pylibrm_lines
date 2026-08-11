@@ -7,7 +7,7 @@ from typing import List, Optional, TYPE_CHECKING, Union, Tuple
 from rm_api.defaults import DocumentTypes, FileTypes, RM_SCREEN_SIZE
 from rm_lines_sys import lib
 
-from .exceptions import FailedToConvertToMd, FailedToConvertToTxt
+from .exceptions import FailedToConvertToMd, FailedToConvertToTxt, FailedToMakeRenderer
 from .text import Paragraph
 from PIL import Image
 
@@ -158,6 +158,17 @@ class Renderer:
                 raise ValueError("Missing value for page_type and cannot infer from document type")
 
         self.uuid = lib.makeRenderer(self.scene_tree.uuid, page_type.value, landscape)
+
+        if not self.uuid:
+            # RARE, this shouldn't happen,
+            # unless there is a bug in how the renderer is loaded,
+            # or the scene tree is corrupt
+            # You shouldn't need to catch this exception, but if you do, please report it!
+            raise FailedToMakeRenderer()
+
+        page = self.scene_tree.document.content.c_pages.get_page_from_uuid(self.scene_tree.page_uuid)
+        setattr(page, 'renderer', self)
+
         self.landscape = landscape
         self.page_type = page_type
         self.scene_tree.renderer = self

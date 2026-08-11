@@ -44,6 +44,9 @@ class SceneTree:
         if not new.uuid:
             raise FailedToBuildTree()
 
+        page = new.document.content.c_pages.get_page_from_uuid(page_uuid)
+        setattr(page, 'tree', new)
+
         return new
 
     @property
