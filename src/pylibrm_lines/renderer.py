@@ -175,6 +175,13 @@ class Renderer:
         if scene_tree.document:
             self.template = scene_tree.document.content.c_pages.get_page_from_uuid(scene_tree.page_uuid).template.value
 
+            if scene_tree.image_info:
+                for uuid, filename in scene_tree.image_info.iter_uuid_filenames():
+                    file_uuid = f'{scene_tree.document.uuid}/{scene_tree.page_uuid}/{filename}'
+                    file = scene_tree.document.file_uuid_map.get(file_uuid)
+                    if file:
+                        lib.addImage(self.uuid, uuid.encode(), scene_tree.document.get_file(file.hash).encode())
+
         self._update_paragraphs()
         self._update_layers()
 

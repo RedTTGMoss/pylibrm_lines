@@ -1,12 +1,43 @@
 import json
 import os
-from typing import Optional, Union
+from typing import Optional, Union, List, Dict, Generator, Tuple
 
 from rm_api import Document, API
+from rm_api.models import TimestampedValue
 from rm_lines_sys import lib
 
 from .scene_info import SceneInfo
 from .exceptions import *
+
+class ImageRecordInfo:
+    uuid: str
+    filename: TimestampedValue[str]
+    flags: TimestampedValue[List[int]]
+
+class ImageInfo:
+    scene_tree: 'SceneTree'
+    images: Dict[str, ImageRecordInfo]
+
+    def __init__(self, scene_tree: 'SceneTree'):
+        self.scene_tree = scene_tree
+        self.images = {}
+
+    def iter_uuid_filenames(self) -> Generator[Tuple[str, str], None, None]:
+        return (
+            (uuid, record.filename.value)
+            for uuid, record in self.images.items()
+        )
+
+    @classmethod
+    def from_dict(cls, scene_tree: 'SceneTree', image_info_dict: dict):
+        image_info = cls(scene_tree)
+        for uuid, record in image_info_dict.items():
+            record_info = ImageRecordInfo()
+            record_info.uuid = uuid
+            record_info.filename = TimestampedValue(record['fileName'])
+            record_info.flags = TimestampedValue(record['flags'])
+            image_info.images[uuid] = record_info
+        return image_info
 
 
 class SceneTree:
@@ -14,6 +45,7 @@ class SceneTree:
     document: Optional[Document]
     page_uuid: Optional[str]
     _scene_info: Optional[SceneInfo]
+    _image_info: Optional[ImageInfo]
 
     def __init__(self, uuid: bytes = b'', document: Document = None, page_uuid: str = None):
         if not lib:
@@ -25,6 +57,7 @@ class SceneTree:
         self._paragraphs = None
         self._renderer = None
         self._scene_info = None
+        self._image_info = None
 
     @property
     def api(self) -> Optional[API]:
@@ -92,6 +125,31 @@ class SceneTree:
             except NoSceneInfo:
                 return None
         return self._scene_info
+
+    def get_image_info_raw(self) -> Optional[bytes]:
+        raw = lib.getImageInfo(self.uuid)
+        if raw == b'':
+            return None
+        return raw
+
+    def get_image_info_dict(self) -> Optional[dict]:
+        raw = self.get_image_info_raw()
+        if raw is None:
+            return None
+        return json.loads(raw.decode())
+
+    def get_image_info(self) -> Optional[ImageInfo]:
+        if not self._image_info:
+            image_info_dict = self.get_image_info_dict()
+            if image_info_dict is None:
+                return None
+            self._image_info = ImageInfo.from_dict(self, image_info_dict)
+        return self._image_info
+
+    @property
+    def image_info(self) -> Optional[ImageInfo]:
+        return self.get_image_info()
+
 
     def destroy(self):
         """Destroying the scene tree will also destroy the renderer if it exists."""
