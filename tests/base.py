@@ -1,3 +1,4 @@
+import logging
 import os
 import unittest
 from abc import ABC
@@ -10,6 +11,7 @@ from pathlib import Path
 
 from rm_api.auth import FailedToRefreshToken
 
+from pylibrm_lines import set_debug_logger, set_error_logger, set_logger, set_debug_mode
 from src.pylibrm_lines import SceneTree
 from src.pylibrm_lines.renderer import Renderer
 from src.pylibrm_lines.scene_info import SceneInfo
@@ -47,6 +49,12 @@ class BaseTest(unittest.TestCase):
         if cls is BaseTest:
             raise unittest.SkipTest('')  # Skip BaseTest tests, it's a base class
         super(BaseTest, cls).setUpClass()
+        logger = logging.getLogger(cls.__name__)
+
+        set_debug_logger(lambda msg: logger.debug(msg))
+        set_error_logger(lambda msg: logger.error(msg))
+        set_logger(lambda msg: logger.info(msg))
+        set_debug_mode(True)
 
         # LOAD DOCUMENTS USING NEW DOCUMENT LOADING METHOD
         cls.documents = []
