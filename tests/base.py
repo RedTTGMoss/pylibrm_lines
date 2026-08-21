@@ -15,9 +15,13 @@ from src.pylibrm_lines.scene_info import SceneInfo
 
 SOURCE_DIR = Path(__file__).parent.parent
 RESULTS_DIRECTORY = SOURCE_DIR / 'results'
+BASE_DIRECTORY = SOURCE_DIR / 'tests'
+OTHER_DIRECTORY = SOURCE_DIR / 'tests' / 'other'
 TESTS_DIRECTORY = SOURCE_DIR / 'tests' / 'files'
 JSON_DIRECTORY = RESULTS_DIRECTORY / 'json'
 PNG_DIRECTORY = RESULTS_DIRECTORY / 'png'
+PIL_BACKDROP_DIRECTORY = RESULTS_DIRECTORY / 'pil_backdrop'
+PDF_BACKDROP_DIRECTORY = RESULTS_DIRECTORY / 'pdf_backdrop'
 ZOOM_DIRECTORY = RESULTS_DIRECTORY / 'zoom'
 SVG_DIRECTORY = RESULTS_DIRECTORY / 'svg'
 PDF_DIRECTORY = RESULTS_DIRECTORY / 'pdf'
@@ -28,6 +32,8 @@ TXT_DIRECTORY = RESULTS_DIRECTORY / 'txt'
 os.makedirs(RESULTS_DIRECTORY, exist_ok=True)
 os.makedirs(JSON_DIRECTORY, exist_ok=True)
 os.makedirs(PNG_DIRECTORY, exist_ok=True)
+os.makedirs(PIL_BACKDROP_DIRECTORY, exist_ok=True)
+os.makedirs(PDF_BACKDROP_DIRECTORY, exist_ok=True)
 os.makedirs(ZOOM_DIRECTORY, exist_ok=True)
 os.makedirs(SVG_DIRECTORY, exist_ok=True)
 os.makedirs(PDF_DIRECTORY, exist_ok=True)

@@ -1,6 +1,7 @@
 import json
 import os
-from ctypes import c_uint32
+from _ctypes import Array
+from ctypes import c_uint32, c_ubyte
 from enum import Enum
 from typing import List, Optional, TYPE_CHECKING, Union, Tuple
 
@@ -14,6 +15,7 @@ from PIL import Image
 
 if TYPE_CHECKING:
     from pylibrm_lines.scene_tree import SceneTree
+    from pymupdf import Page
 
 
 class PageType(Enum):
@@ -148,6 +150,7 @@ class Renderer:
         self._paragraphs = None
         self._layers = None
         self._config = None
+        self._backdrop_ptr = None
         self._template = 'Blank'
         self._layers_index = {}
         if not landscape:
@@ -188,6 +191,65 @@ class Renderer:
 
         self._update_paragraphs()
         self._update_layers()
+
+    def set_backdrop_raw(self, backdrop_ptr: Array[c_ubyte], size: int, width: int, height: int, stride: int):
+        """
+        Set a backdrop from a raw pointer. The pointer should point to a buffer in RGBA format, with 4 bytes per pixel.
+
+        :param backdrop_ptr:
+        :param size:
+        :param width:
+        :param height:
+        :param stride:
+        :return:
+        """
+        self._backdrop_ptr = backdrop_ptr
+        lib.setBackdrop(self.uuid, self._backdrop_ptr, size, width, height, stride)
+
+    def set_backdrop_buffer(self, buffer: bytes | bytearray, width: int, height: int, stride: int | None = None):
+        """
+        Set a backdrop from bytes buffer. The buffer should be in RGBA format, with 4 bytes per pixel.
+
+        :param buffer:
+        :param width:
+        :param height:
+        :param stride:
+        :return:
+        """
+        self._backdrop_ptr = (c_ubyte * len(buffer)).from_buffer_copy(buffer)
+        self.set_backdrop_raw(self._backdrop_ptr, len(buffer), width, height, stride or width * 4)
+
+    def set_backdrop_image(self, image: Image.Image):
+        """
+        Set a backdrop from a PIL Image. The image will be converted to RGBA format.
+
+        :param image:
+        :return:
+        """
+        image = image.convert('RGBA')
+
+        print(
+            "mode:", image.mode,
+            "size:", image.size,
+            "bands:", image.getbands(),
+            "stride:", image.width * 4,
+            "bytes:", len(image.tobytes()),
+            "first pixel:", image.getpixel((0, 0)),
+        )
+
+        buffer = image.tobytes()
+        stride = image.width * len(image.getbands())
+        self.set_backdrop_buffer(buffer, image.width, image.height, stride)
+
+    def set_backdrop_pymupdf(self, pdf_page: 'Page'):
+        """
+        Set a backdrop from a PyMuPDF page. The page will be rendered to an RGBA image.
+
+        :param pdf_page:
+        :return:
+        """
+        image = pdf_page.get_pixmap(alpha=True)
+        self.set_backdrop_buffer(image.samples, image.width, image.height, image.stride)
 
     @property
     def config(self) -> RendererConfig:

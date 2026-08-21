@@ -7,7 +7,7 @@ from tests.base import BaseTest
 
 class TestConfig(BaseTest):
 
-    def test_011_test_getting_renderer_config(self):
+    def test_001_test_getting_renderer_config(self):
         for renderer in self.renderers:
             config = renderer.config
             self.assertIsNotNone(config)
@@ -20,7 +20,7 @@ class TestConfig(BaseTest):
             self.assertEqual(len(config._pen_whitelist), 20)
             self.assertEqual(len(config._pen_blacklist), 20)
 
-    def test_012_test_pens_listing(self):
+    def test_002_test_pens_listing(self):
         for renderer in self.renderers:
             config = renderer.config
             for pen_id in ALL_PEN_IDS:
@@ -35,7 +35,7 @@ class TestConfig(BaseTest):
 
             config.use_whitelist = False
 
-    def test_013_test_pens_blacklist(self):
+    def test_003_test_pens_blacklist(self):
         for renderer in self.renderers:
             config = renderer.config
 
@@ -48,7 +48,7 @@ class TestConfig(BaseTest):
             self.assertTrue(ALL_PEN_IDS[0] in config.allowed_pens)
             self.assertTrue(ALL_PEN_IDS[0] not in config.disallowed_pens)
 
-    def test_014_test_pens_whitelist(self):
+    def test_004_test_pens_whitelist(self):
         for renderer in self.renderers:
             config = renderer.config
 
@@ -61,4 +61,5 @@ class TestConfig(BaseTest):
             config.disable_pen(ALL_PEN_IDS[0])
             self.assertTrue(ALL_PEN_IDS[0] not in config.allowed_pens)
             self.assertTrue(ALL_PEN_IDS[0] in config.disallowed_pens)
+            config.use_whitelist = False
 
