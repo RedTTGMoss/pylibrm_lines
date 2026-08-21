@@ -7,12 +7,13 @@ from typing import List, Optional, TYPE_CHECKING, Union, Tuple
 from rm_api.defaults import DocumentTypes, FileTypes, RM_SCREEN_SIZE
 from rm_lines_sys import lib
 
-from .exceptions import FailedToConvertToMd, FailedToConvertToTxt, FailedToMakeRenderer
-from .text import Paragraph
+from pylibrm_lines.exceptions import FailedToConvertToMd, FailedToConvertToTxt, FailedToMakeRenderer
+from pylibrm_lines.renderer.config import RendererConfig
+from pylibrm_lines.text import Paragraph
 from PIL import Image
 
 if TYPE_CHECKING:
-    from .scene_tree import SceneTree
+    from pylibrm_lines.scene_tree import SceneTree
 
 
 class PageType(Enum):
@@ -134,6 +135,8 @@ class LayerInfo:
         return self._size_tracker
 
 
+
+
 class Renderer:
     uuid: bytes
     _paragraphs: Optional[List[Paragraph]]
@@ -144,6 +147,7 @@ class Renderer:
         self.scene_tree = scene_tree
         self._paragraphs = None
         self._layers = None
+        self._config = None
         self._template = 'Blank'
         self._layers_index = {}
         if not landscape:
@@ -184,6 +188,13 @@ class Renderer:
 
         self._update_paragraphs()
         self._update_layers()
+
+    @property
+    def config(self) -> RendererConfig:
+        if self._config is None:
+            config_ptr = lib.getConfig(self.uuid)
+            self._config = RendererConfig(self, config_ptr)
+        return self._config
 
     @property
     def paper_size(self) -> Tuple[int, int]:

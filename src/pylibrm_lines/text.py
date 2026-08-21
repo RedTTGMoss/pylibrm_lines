@@ -1,10 +1,9 @@
-import base64
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .renderer import Renderer
+    from pylibrm_lines.renderer import Renderer
 
 
 @dataclass

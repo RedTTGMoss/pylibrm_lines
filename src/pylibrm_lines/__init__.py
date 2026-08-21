@@ -1,5 +1,5 @@
 from .scene_tree import SceneTree
-from .renderer import (
+from pylibrm_lines.renderer import (
     PageType,
     SizeTracker,
     LayerInfo,

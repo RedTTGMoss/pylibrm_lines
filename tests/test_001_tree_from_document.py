@@ -1,10 +1,5 @@
-import os
-import time
-import unittest
-from rm_api import API
-
 from src.pylibrm_lines import SceneTree
-from src.pylibrm_lines.renderer import Renderer
+from pylibrm_lines.renderer import Renderer
 from tests.base import BaseTest
 
 

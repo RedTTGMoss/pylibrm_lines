@@ -85,13 +85,13 @@ class SceneTree:
     @property
     def renderer(self):
         if not self._renderer:
-            from .renderer import Renderer
+            from pylibrm_lines.renderer import Renderer
             self._renderer = Renderer(self)
         return self._renderer
 
     @renderer.setter
     def renderer(self, value):
-        from .renderer import Renderer
+        from pylibrm_lines.renderer import Renderer
         if not isinstance(value, Renderer):
             raise TypeError("Renderer must be an instance of Renderer class")
         self._renderer = value
