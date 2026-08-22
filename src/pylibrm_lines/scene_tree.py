@@ -39,7 +39,6 @@ class ImageInfo:
             image_info.images[uuid] = record_info
         return image_info
 
-
 class SceneTree:
     uuid: bytes
     document: Optional[Document]

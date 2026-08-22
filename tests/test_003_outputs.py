@@ -1,3 +1,5 @@
+import json
+
 from tests.base import *
 
 
@@ -38,13 +40,27 @@ class TestOutputs(BaseTest):
                 from_uuid = renderer.get_layer_by_uuid(layer.uuid)
                 self.assertEqual(layer, from_uuid, f"Layer {layer.uuid} not found in renderer layers")
 
-    def test_106_renderer_get_size_tracker(self):
+    def test_106_renderer_get_layers_full(self):
+        for renderer in self.renderers:
+            layers = renderer.layers
+            renderer.config.follow_rules_in_json = True
+            renderer.config.stroker_data_in_json = True
+            layer_data = []
+            for layer in layers:
+                layer.update_data()
+                layer_data.append(layer._data)
+
+            filename = self.get_filename(renderer) + f'_{layer.uuid}.json'
+            with open(os.path.join(LAYER_FULL_DIRECTORY / filename), 'w') as f:
+                json.dump(layer_data, f, indent=4)
+
+    def test_107_renderer_get_size_tracker(self):
         for renderer in self.renderers:
             for layer in renderer.layers:
                 size_tracker = layer.size_tracker
                 self.assertIsNotNone(size_tracker, f"Size tracker for layer {layer.uuid} is None")
 
-    def test_107_render_scaled(self):
+    def test_108_render_scaled(self):
         for renderer in self.renderers:
             initial_rect = Rect(0, 0, *renderer.paper_size)
             rect = initial_rect.scale_by(2, 2)  # Zoomed out, aka 0.5x scale

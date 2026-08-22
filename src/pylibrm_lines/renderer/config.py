@@ -63,6 +63,22 @@ class RendererConfig:
         self._config.contents.useBackdropForSamplingOnly = value
 
     @property
+    def follow_rules_in_json(self) -> bool:
+        return self._config.contents.followRulesInJson
+
+    @follow_rules_in_json.setter
+    def follow_rules_in_json(self, value: bool):
+        self._config.contents.followRulesInJson = value
+
+    @property
+    def stroker_data_in_json(self) -> bool:
+        return self._config.contents.strokerDataInJson
+
+    @stroker_data_in_json.setter
+    def stroker_data_in_json(self, value: bool):
+        self._config.contents.strokerDataInJson = value
+
+    @property
     def _pen_whitelist(self) -> List[int]:
         return self._config.contents.penWhitelist
 

@@ -1,17 +1,22 @@
 import json
 import os
 from _ctypes import Array
+from abc import ABC, abstractclassmethod, abstractmethod
 from ctypes import c_uint32, c_ubyte
 from enum import Enum
 from typing import List, Optional, TYPE_CHECKING, Union, Tuple
 
+from dulwich.annotate import update_lines
 from rm_api.defaults import DocumentTypes, FileTypes, RM_SCREEN_SIZE
 from rm_lines_sys import lib
 
 from pylibrm_lines.exceptions import FailedToConvertToMd, FailedToConvertToTxt, FailedToMakeRenderer
 from pylibrm_lines.renderer.config import RendererConfig
+from pylibrm_lines.scene_items.glyph_range import GlyphRangeItem
+from pylibrm_lines.scene_items.image import ImageItem
+from pylibrm_lines.scene_items.line import LineItem
 from pylibrm_lines.text import Paragraph
-from PIL import Image
+import PIL.Image as PILImage
 
 if TYPE_CHECKING:
     from pylibrm_lines.scene_tree import SceneTree
@@ -91,6 +96,91 @@ class SizeTracker:
         return self.bottom - self.top
 
 
+class LayerItemInfo(ABC):
+    def __init__(self, group_id: str, uuid: str, offset_x: float, offset_y: float):
+        self._group_id = group_id
+        self._uuid = uuid
+        self._offset_x = offset_x
+        self._offset_y = offset_y
+
+    @classmethod
+    @abstractmethod
+    def from_dict(cls, item_info: dict):
+        return cls(
+            item_info['groupId'],
+            item_info['itemId'],
+            item_info['offsetX'],
+            item_info['offsetY']
+        )
+
+    @property
+    def group_id(self) -> str:
+        return self._group_id
+
+    @property
+    def uuid(self) -> str:
+        return self._uuid
+
+    @property
+    def offset_x(self) -> float:
+        return self._offset_x
+
+    @property
+    def offset_y(self) -> float:
+        return self._offset_y
+
+
+class LineInfo(LayerItemInfo):
+
+    def __init__(self, group_id: str, uuid: str, offset_x: float, offset_y: float):
+        super().__init__(group_id, uuid, offset_x, offset_y)
+        self._line = None
+
+    @property
+    def line(self) -> Optional[LineItem]:
+        return self._line
+
+    @classmethod
+    def from_dict(cls, item_info: dict):
+        item = super().from_dict(item_info)
+        item._line = LineItem.from_dict(item_info['line'])
+        return item
+
+
+class ImageInfo(LayerItemInfo):
+
+    def __init__(self, group_id: str, uuid: str, offset_x: float, offset_y: float):
+        super().__init__(group_id, uuid, offset_x, offset_y)
+        self._image = None
+
+    @property
+    def image(self) -> Optional[ImageItem]:
+        return self._image
+
+    @classmethod
+    def from_dict(cls, item_info: dict):
+        item = super().from_dict(item_info)
+        item._image = ImageItem.from_dict(item_info['image'])
+        return item
+
+
+class GlyphRangeInfo(LayerItemInfo):
+
+    def __init__(self, group_id: str, uuid: str, offset_x: float, offset_y: float):
+        super().__init__(group_id, uuid, offset_x, offset_y)
+        self._glyph_range = None
+
+    @property
+    def glyph_range(self) -> Optional[GlyphRangeItem]:
+        return self._glyph_range
+
+    @classmethod
+    def from_dict(cls, item_info: dict):
+        item = super().from_dict(item_info)
+        item._glyph_range = GlyphRangeItem.from_dict(item_info['glyphRange'])
+        return item
+
+
 class LayerInfo:
     renderer: 'Renderer'
     uuid: str
@@ -103,8 +193,13 @@ class LayerInfo:
         self._label = label
         self._visible = visible
         self._size_tracker = None
+        self._data: Optional[dict] = None
+        self._lines = None
+        self._images = None
+        self._glyph_ranges = None
 
         self.update_size_tracker()
+        self.update_data()
 
     @classmethod
     def from_dict(cls, renderer: 'Renderer', layer_info: dict):
@@ -136,7 +231,52 @@ class LayerInfo:
             self.update_size_tracker()
         return self._size_tracker
 
+    @property
+    def lines(self) -> List[LineInfo]:
+        if self._lines is None:
+            self.update_lines()
+        return self._lines
 
+    def update_lines(self):
+        if not self._data:
+            return self.update_data()
+        self._lines = [LineInfo.from_dict(line_info) for line_info in self._data.get('lines', [])]
+
+    @property
+    def images(self):
+        if self._images is None:
+            self.update_images()
+        return self._images
+
+    def update_images(self):
+        if not self._data:
+            return self.update_data()
+        self._images = [ImageInfo.from_dict(image_info) for image_info in self._data.get('images', [])]
+
+    @property
+    def glyph_ranges(self):
+        if self._glyph_ranges is None:
+            self.update_glyph_ranges()
+        return self._glyph_ranges
+
+    def update_glyph_ranges(self):
+        if not self._data:
+            return self.update_data()
+        self._glyph_ranges = [GlyphRangeInfo.from_dict(glyph_range_info) for glyph_range_info in
+                              self._data.get('glyphRanges', [])]
+
+    def update_data(self):
+        self._data = self.renderer.get_layer_full_dict(self.uuid)
+
+        # Update basic layer info
+        self._label = self._data.get('label', self.label)
+        self._uuid = self._data.get('groupId', self.uuid)
+        self._visible = self._data.get('visible', self.visible)
+
+        # Update item info
+        self.update_lines()
+        self.update_images()
+        self.update_glyph_ranges()
 
 
 class Renderer:
@@ -219,7 +359,7 @@ class Renderer:
         self._backdrop_ptr = (c_ubyte * len(buffer)).from_buffer_copy(buffer)
         self.set_backdrop_raw(self._backdrop_ptr, len(buffer), width, height, stride or width * 4)
 
-    def set_backdrop_image(self, image: Image.Image):
+    def set_backdrop_image(self, image: PILImage.Image):
         """
         Set a backdrop from a PIL Image. The image will be converted to RGBA format.
 
@@ -330,6 +470,18 @@ class Renderer:
             return None
         return json.loads(raw.decode())
 
+    def get_layer_full_raw(self, layer_uuid: str) -> Optional[bytes]:
+        raw = lib.getLayerFull(self.uuid, layer_uuid.encode())
+        if raw == b'':
+            return None
+        return raw
+
+    def get_layer_full_dict(self, layer_uuid: str) -> Optional[dict]:
+        raw = self.get_layer_full_raw(layer_uuid)
+        if raw is None:
+            return None
+        return json.loads(raw.decode())
+
     def get_size_tracker(self, layer_uuid: str) -> Optional[SizeTracker]:
         layer = self.get_layer_by_uuid(layer_uuid)
         if not layer:
@@ -388,9 +540,9 @@ class Renderer:
     def to_image_raw(self, antialias: bool = False) -> Tuple[bytes, Tuple[int, int]]:
         return self.get_frame_raw(0, 0, *self.paper_size, *self.paper_size, antialias), self.paper_size
 
-    def to_image(self, antialias: bool = False) -> Image.Image:
+    def to_image(self, antialias: bool = False) -> PILImage.Image:
         raw_frame, size = self.to_image_raw(antialias)
-        return Image.frombytes('RGBA', size, raw_frame, 'raw', 'RGBA')
+        return PILImage.frombytes('RGBA', size, raw_frame, 'raw', 'RGBA')
 
     def to_image_file(self, output_file: Union[os.PathLike, str], antialias: bool = False, image_format: str = 'PNG'):
         image = self.to_image(antialias)
