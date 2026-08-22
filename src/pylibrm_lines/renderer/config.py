@@ -1,12 +1,14 @@
 from typing import List
 
+from rm_lines_sys import C_RendererConfig
+
 from pylibrm_lines.pens import PEN_COMBINED_VERSIONS, ALL_PEN_IDS
 
 
 class RendererConfig:
-    def __init__(self, renderer, config_ptr):
+    def __init__(self, renderer, config_ptr: C_RendererConfig):
         self._renderer = renderer
-        self._config = config_ptr
+        self._config: C_RendererConfig = config_ptr
 
     @property
     def version(self) -> int:
@@ -51,6 +53,14 @@ class RendererConfig:
     @enable_backdrop.setter
     def enable_backdrop(self, value: bool):
         self._config.contents.enableBackdrop = value
+
+    @property
+    def backdrop_sampling(self) -> bool:
+        return self._config.contents.useBackdropForSamplingOnly
+
+    @backdrop_sampling.setter
+    def backdrop_sampling(self, value: bool):
+        self._config.contents.useBackdropForSamplingOnly = value
 
     @property
     def _pen_whitelist(self) -> List[int]:
