@@ -18,6 +18,9 @@ from pylibrm_lines.scene_items.line import LineItem
 from pylibrm_lines.text import Paragraph
 import PIL.Image as PILImage
 
+from .pens import *
+from .backdrop_alignments import *
+
 if TYPE_CHECKING:
     from pylibrm_lines.scene_tree import SceneTree
     from pymupdf import Page
@@ -368,27 +371,19 @@ class Renderer:
         """
         image = image.convert('RGBA')
 
-        print(
-            "mode:", image.mode,
-            "size:", image.size,
-            "bands:", image.getbands(),
-            "stride:", image.width * 4,
-            "bytes:", len(image.tobytes()),
-            "first pixel:", image.getpixel((0, 0)),
-        )
-
         buffer = image.tobytes()
         stride = image.width * len(image.getbands())
         self.set_backdrop_buffer(buffer, image.width, image.height, stride)
 
-    def set_backdrop_pymupdf(self, pdf_page: 'Page'):
+    def set_backdrop_pymupdf(self, pdf_page: 'Page', dpi: Optional[int] = 227):
         """
         Set a backdrop from a PyMuPDF page. The page will be rendered to an RGBA image.
 
-        :param pdf_page:
+        :param dpi: The DPI to render the page at. Default is 227, which is the default for reMarkable.
+        :param pdf_page: The PyMuPDF page to use as a backdrop.
         :return:
         """
-        image = pdf_page.get_pixmap(alpha=True)
+        image = pdf_page.get_pixmap(alpha=True, dpi=dpi)
         self.set_backdrop_buffer(image.samples, image.width, image.height, image.stride)
 
     @property

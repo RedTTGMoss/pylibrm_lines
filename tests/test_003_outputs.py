@@ -85,13 +85,13 @@ class TestOutputs(BaseTest):
             combined_image.paste(zoomed_out_image, (renderer.paper_size[0], 0))
             combined_image.paste(zoomed_in_image, (renderer.paper_size[0] * 2, 0))
 
-            for y in range(renderer.paper_size[1]):
-                combined_image.putpixel((renderer.paper_size[0] - 1, y), (150, 0, 0, 255))
-                combined_image.putpixel((renderer.paper_size[0], y), (255, 0, 0, 255))
-                combined_image.putpixel((renderer.paper_size[0] + 1, y), (150, 0, 0, 255))
-
-                combined_image.putpixel((renderer.paper_size[0] * 2 - 1, y), (0, 0, 150, 255))
-                combined_image.putpixel((renderer.paper_size[0] * 2, y), (0, 0, 255, 255))
-                combined_image.putpixel((renderer.paper_size[0] * 2 + 1, y), (0, 0, 150, 255))
-
             combined_image.save(ZOOM_DIRECTORY / f"{self.get_filename(renderer)}.png")
+
+    def test_109_renderer_get_paragraphs(self):
+        for renderer in self.renderers:
+            if not renderer.paragraphs:
+                continue
+            filename = self.get_filename(renderer) + '.json'
+            paras = renderer.get_paragraphs_dict()
+            with open(os.path.join(PARAGRAPHS_DIRECTORY / filename), 'w') as f:
+                json.dump(paras, f, indent=4)

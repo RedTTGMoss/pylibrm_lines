@@ -2,7 +2,7 @@ from typing import List
 
 from rm_lines_sys import C_RendererConfig
 
-from pylibrm_lines.pens import PEN_COMBINED_VERSIONS, ALL_PEN_IDS
+from pylibrm_lines.renderer.pens import PEN_COMBINED_VERSIONS, ALL_PEN_IDS
 
 
 class RendererConfig:
@@ -85,6 +85,38 @@ class RendererConfig:
     @property
     def _pen_blacklist(self) -> List[int]:
         return self._config.contents.penBlacklist
+
+    @property
+    def backdrop_offset_x(self) -> float:
+        return self._config.contents.backdropOffsetX
+
+    @backdrop_offset_x.setter
+    def backdrop_offset_x(self, value: float):
+        self._config.contents.backdropOffsetX = value
+
+    @property
+    def backdrop_offset_y(self) -> float:
+        return self._config.contents.backdropOffsetY
+
+    @backdrop_offset_y.setter
+    def backdrop_offset_y(self, value: float):
+        self._config.contents.backdropOffsetY = value
+
+    @property
+    def backdrop_offset(self) -> tuple[float, float]:
+        return self.backdrop_offset_x, self.backdrop_offset_y
+
+    @backdrop_offset.setter
+    def backdrop_offset(self, value: tuple[float, float]):
+        self.backdrop_offset_x, self.backdrop_offset_y = value
+
+    @property
+    def backdrop_align(self) -> int:
+        return self._config.contents.backdropAlign
+
+    @backdrop_align.setter
+    def backdrop_align(self, value: int):
+        self._config.contents.backdropAlign = value
 
     @staticmethod
     def _combine_pens(pens: List[int]) -> List[int]:

@@ -1,6 +1,3 @@
-from pylibrm_lines.pens import ALL_PEN_IDS, get_pen_repr
-from src.pylibrm_lines import SceneTree
-from pylibrm_lines.renderer import Renderer
 from tests.base import BaseTest
 
 class DESTROY(BaseTest):

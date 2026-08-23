@@ -19,6 +19,7 @@ BASE_DIRECTORY = SOURCE_DIR / 'tests'
 OTHER_DIRECTORY = SOURCE_DIR / 'tests' / 'other'
 TESTS_DIRECTORY = SOURCE_DIR / 'tests' / 'files'
 JSON_DIRECTORY = RESULTS_DIRECTORY / 'json'
+PARAGRAPHS_DIRECTORY = RESULTS_DIRECTORY / 'paragraphs'
 LAYER_FULL_DIRECTORY = RESULTS_DIRECTORY / 'layer_full'
 PNG_DIRECTORY = RESULTS_DIRECTORY / 'png'
 PIL_BACKDROP_DIRECTORY = RESULTS_DIRECTORY / 'pil_backdrop'
@@ -32,6 +33,7 @@ TXT_DIRECTORY = RESULTS_DIRECTORY / 'txt'
 # Make the necessary directories
 os.makedirs(RESULTS_DIRECTORY, exist_ok=True)
 os.makedirs(JSON_DIRECTORY, exist_ok=True)
+os.makedirs(PARAGRAPHS_DIRECTORY, exist_ok=True)
 os.makedirs(PNG_DIRECTORY, exist_ok=True)
 os.makedirs(LAYER_FULL_DIRECTORY, exist_ok=True)
 os.makedirs(PIL_BACKDROP_DIRECTORY, exist_ok=True)
