@@ -1,8 +1,7 @@
-from typing import List
 
 from rm_lines_sys import C_RendererConfig
 
-from pylibrm_lines.renderer.pens import PEN_COMBINED_VERSIONS, ALL_PEN_IDS
+from pylibrm_lines.renderer.pens import ALL_PEN_IDS, PEN_COMBINED_VERSIONS
 
 
 class RendererConfig:
@@ -79,11 +78,11 @@ class RendererConfig:
         self._config.contents.strokerDataInJson = value
 
     @property
-    def _pen_whitelist(self) -> List[int]:
+    def _pen_whitelist(self) -> list[int]:
         return self._config.contents.penWhitelist
 
     @property
-    def _pen_blacklist(self) -> List[int]:
+    def _pen_blacklist(self) -> list[int]:
         return self._config.contents.penBlacklist
 
     @property
@@ -119,7 +118,7 @@ class RendererConfig:
         self._config.contents.backdropAlign = value
 
     @staticmethod
-    def _combine_pens(pens: List[int]) -> List[int]:
+    def _combine_pens(pens: list[int]) -> list[int]:
         for combined_value, combination in PEN_COMBINED_VERSIONS.items():
             if combination[0] in pens and combination[1] in pens:
                 pens.append(combined_value)
@@ -128,7 +127,7 @@ class RendererConfig:
         return pens
 
     @staticmethod
-    def _uncombine_pens(pens: List[int]) -> List[int]:
+    def _uncombine_pens(pens: list[int]) -> list[int]:
         for combined_value, combination in PEN_COMBINED_VERSIONS.items():
             if combined_value in pens:
                 pens.append(combination[0])
@@ -137,7 +136,7 @@ class RendererConfig:
         return pens
 
     @property
-    def _allowed_pens(self) -> List[int]:
+    def _allowed_pens(self) -> list[int]:
         if self.use_whitelist:
             return [pen for pen in self._pen_whitelist if pen != -1]
         else:
@@ -145,7 +144,7 @@ class RendererConfig:
             return [pen for pen in ALL_PEN_IDS if pen not in blacklist]
 
     @property
-    def _disallowed_pens(self) -> List[int]:
+    def _disallowed_pens(self) -> list[int]:
         if self.use_whitelist:
             whitelist = [pen for pen in self._pen_whitelist if pen != -1]
             return [pen for pen in ALL_PEN_IDS if pen not in whitelist]
@@ -153,11 +152,11 @@ class RendererConfig:
             return [pen for pen in self._pen_blacklist if pen != -1]
 
     @property
-    def allowed_pens(self) -> List[int]:
+    def allowed_pens(self) -> list[int]:
         return self._combine_pens(self._allowed_pens)
 
     @property
-    def disallowed_pens(self) -> List[int]:
+    def disallowed_pens(self) -> list[int]:
         return self._combine_pens(self._disallowed_pens)
 
     def _enable_pen(self, pen_id: int):

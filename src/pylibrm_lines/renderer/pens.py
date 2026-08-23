@@ -43,37 +43,41 @@ PEN_COMBINED_VERSIONS = {
 }
 
 PEN_REPRESENTATIONS = {
-        PEN_BALLPOINT: "Ballpoint Pen",
-        PEN_BALLPOINT_V1: "Ballpoint Pen v1",
-        PEN_BALLPOINT_V2: "Ballpoint Pen v2",
-        PEN_CALLIGRAPHY: "Calligraphy Pen",
-        PEN_ERASER: "Eraser",
-        PEN_ERASER_AREA: "Eraser Area",
-        PEN_FINELINER: "Fineliner",
-        PEN_FINELINER_V1: "Fineliner v1",
-        PEN_FINELINER_V2: "Fineliner v2",
-        PEN_HIGHLIGHTER: "Highlighter",
-        PEN_HIGHLIGHTER_V1: "Highlighter v1",
-        PEN_HIGHLIGHTER_V2: "Highlighter v2",
-        PEN_MARKER: "Marker",
-        PEN_MARKER_V1: "Marker v1",
-        PEN_MARKER_V2: "Marker v2",
-        PEN_MECHANICAL_PENCIL: "Mechanical Pencil",
-        PEN_MECHANICAL_PENCIL_V1: "Mechanical Pencil v1",
-        PEN_MECHANICAL_PENCIL_V2: "Mechanical Pencil v2",
-        PEN_PAINTBRUSH: "Paint Brush",
-        PEN_PAINTBRUSH_V1: "Paint Brush v1",
-        PEN_PAINTBRUSH_V2: "Paint Brush v2",
-        PEN_PENCIL: "Pencil",
-        PEN_PENCIL_V1: "Pencil v1",
-        PEN_PENCIL_V2: "Pencil v2",
-        PEN_SHADER: "Shader"
-    }
+    PEN_BALLPOINT: "Ballpoint Pen",
+    PEN_BALLPOINT_V1: "Ballpoint Pen v1",
+    PEN_BALLPOINT_V2: "Ballpoint Pen v2",
+    PEN_CALLIGRAPHY: "Calligraphy Pen",
+    PEN_ERASER: "Eraser",
+    PEN_ERASER_AREA: "Eraser Area",
+    PEN_FINELINER: "Fineliner",
+    PEN_FINELINER_V1: "Fineliner v1",
+    PEN_FINELINER_V2: "Fineliner v2",
+    PEN_HIGHLIGHTER: "Highlighter",
+    PEN_HIGHLIGHTER_V1: "Highlighter v1",
+    PEN_HIGHLIGHTER_V2: "Highlighter v2",
+    PEN_MARKER: "Marker",
+    PEN_MARKER_V1: "Marker v1",
+    PEN_MARKER_V2: "Marker v2",
+    PEN_MECHANICAL_PENCIL: "Mechanical Pencil",
+    PEN_MECHANICAL_PENCIL_V1: "Mechanical Pencil v1",
+    PEN_MECHANICAL_PENCIL_V2: "Mechanical Pencil v2",
+    PEN_PAINTBRUSH: "Paint Brush",
+    PEN_PAINTBRUSH_V1: "Paint Brush v1",
+    PEN_PAINTBRUSH_V2: "Paint Brush v2",
+    PEN_PENCIL: "Pencil",
+    PEN_PENCIL_V1: "Pencil v1",
+    PEN_PENCIL_V2: "Pencil v2",
+    PEN_SHADER: "Shader",
+}
 
-ALL_PEN_IDS = [pen for pen in PEN_REPRESENTATIONS.keys() if pen not in PEN_COMBINED_VERSIONS.keys()]
+ALL_PEN_IDS = [
+    pen for pen in PEN_REPRESENTATIONS if pen not in PEN_COMBINED_VERSIONS
+]
+
 
 def get_pen_repr(pen_id: int) -> str:
     return PEN_REPRESENTATIONS.get(pen_id, "Unknown Pen")
+
 
 def is_valid_pen(pen_id: int) -> bool:
     return pen_id in PEN_REPRESENTATIONS

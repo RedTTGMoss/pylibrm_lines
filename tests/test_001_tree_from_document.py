@@ -1,5 +1,5 @@
-from src.pylibrm_lines import SceneTree
 from pylibrm_lines.renderer import Renderer
+from src.pylibrm_lines import SceneTree
 from tests.base import BaseTest
 
 
@@ -20,9 +20,8 @@ class TestTreeFromDocument(BaseTest):
 
     def test_003_missing_page(self):
         try:
-            SceneTree.from_document(self.trees[-1].document, 'non_existent_page_uuid')
+            SceneTree.from_document(self.trees[-1].document, "non_existent_page_uuid")
         except FileNotFoundError:
             pass
         else:
             self.fail("Expected FileNotFoundError for non-existent page UUID")
-

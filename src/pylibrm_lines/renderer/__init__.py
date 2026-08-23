@@ -1,29 +1,33 @@
 import json
 import os
 from _ctypes import Array
-from abc import ABC, abstractclassmethod, abstractmethod
-from ctypes import c_uint32, c_ubyte
+from abc import ABC, abstractmethod
+from ctypes import c_ubyte, c_uint32
 from enum import Enum
-from typing import List, Optional, TYPE_CHECKING, Union, Tuple
+from typing import TYPE_CHECKING
 
-from dulwich.annotate import update_lines
-from rm_api.defaults import DocumentTypes, FileTypes, RM_SCREEN_SIZE
+import PIL.Image as PILImage
+from rm_api.defaults import RM_SCREEN_SIZE, FileTypes
 from rm_lines_sys import lib
 
-from pylibrm_lines.exceptions import FailedToConvertToMd, FailedToConvertToTxt, FailedToMakeRenderer
+from pylibrm_lines.exceptions import (
+    FailedToConvertToMd,
+    FailedToConvertToTxt,
+    FailedToMakeRenderer,
+)
 from pylibrm_lines.renderer.config import RendererConfig
 from pylibrm_lines.scene_items.glyph_range import GlyphRangeItem
 from pylibrm_lines.scene_items.image import ImageItem
 from pylibrm_lines.scene_items.line import LineItem
 from pylibrm_lines.text import Paragraph
-import PIL.Image as PILImage
 
-from .pens import *
 from .backdrop_alignments import *
+from .pens import *
 
 if TYPE_CHECKING:
-    from pylibrm_lines.scene_tree import SceneTree
     from pymupdf import Page
+
+    from pylibrm_lines.scene_tree import SceneTree
 
 
 class PageType(Enum):
@@ -32,7 +36,7 @@ class PageType(Enum):
 
 
 class SizeTracker:
-    linked_layer: 'LayerInfo'
+    linked_layer: "LayerInfo"
     top: int
     left: int
     bottom: int
@@ -40,8 +44,16 @@ class SizeTracker:
     frame_width: int
     frame_height: int
 
-    def __init__(self, linked_layer: 'LayerInfo', top: int, left: int, bottom: int, right: int,
-                 frame_width: int, frame_height: int):
+    def __init__(
+        self,
+        linked_layer: "LayerInfo",
+        top: int,
+        left: int,
+        bottom: int,
+        right: int,
+        frame_width: int,
+        frame_height: int,
+    ):
         self._linked_layer = linked_layer
         self._top = top
         self._left = left
@@ -51,19 +63,19 @@ class SizeTracker:
         self._frame_height = frame_height
 
     @classmethod
-    def from_dict(cls, linked_layer: 'LayerInfo', size_tracker_info: dict):
+    def from_dict(cls, linked_layer: "LayerInfo", size_tracker_info: dict):
         return cls(
             linked_layer,
-            size_tracker_info['t'],  # top
-            size_tracker_info['l'],  # left
-            size_tracker_info['b'],  # bottom
-            size_tracker_info['r'],  # right
-            size_tracker_info['fw'],  # frame_width
-            size_tracker_info['fh']  # frame_height
+            size_tracker_info["t"],  # top
+            size_tracker_info["l"],  # left
+            size_tracker_info["b"],  # bottom
+            size_tracker_info["r"],  # right
+            size_tracker_info["fw"],  # frame_width
+            size_tracker_info["fh"],  # frame_height
         )
 
     @property
-    def linked_layer(self) -> 'LayerInfo':
+    def linked_layer(self) -> "LayerInfo":
         return self._linked_layer
 
     @property
@@ -110,10 +122,10 @@ class LayerItemInfo(ABC):
     @abstractmethod
     def from_dict(cls, item_info: dict):
         return cls(
-            item_info['groupId'],
-            item_info['itemId'],
-            item_info['offsetX'],
-            item_info['offsetY']
+            item_info["groupId"],
+            item_info["itemId"],
+            item_info["offsetX"],
+            item_info["offsetY"],
         )
 
     @property
@@ -140,13 +152,13 @@ class LineInfo(LayerItemInfo):
         self._line = None
 
     @property
-    def line(self) -> Optional[LineItem]:
+    def line(self) -> LineItem | None:
         return self._line
 
     @classmethod
     def from_dict(cls, item_info: dict):
         item = super().from_dict(item_info)
-        item._line = LineItem.from_dict(item_info['line'])
+        item._line = LineItem.from_dict(item_info["line"])
         return item
 
 
@@ -157,13 +169,13 @@ class ImageInfo(LayerItemInfo):
         self._image = None
 
     @property
-    def image(self) -> Optional[ImageItem]:
+    def image(self) -> ImageItem | None:
         return self._image
 
     @classmethod
     def from_dict(cls, item_info: dict):
         item = super().from_dict(item_info)
-        item._image = ImageItem.from_dict(item_info['image'])
+        item._image = ImageItem.from_dict(item_info["image"])
         return item
 
 
@@ -174,29 +186,31 @@ class GlyphRangeInfo(LayerItemInfo):
         self._glyph_range = None
 
     @property
-    def glyph_range(self) -> Optional[GlyphRangeItem]:
+    def glyph_range(self) -> GlyphRangeItem | None:
         return self._glyph_range
 
     @classmethod
     def from_dict(cls, item_info: dict):
         item = super().from_dict(item_info)
-        item._glyph_range = GlyphRangeItem.from_dict(item_info['glyphRange'])
+        item._glyph_range = GlyphRangeItem.from_dict(item_info["glyphRange"])
         return item
 
 
 class LayerInfo:
-    renderer: 'Renderer'
+    renderer: "Renderer"
     uuid: str
     label: str
     visible: bool
 
-    def __init__(self, renderer: 'Renderer', uuid: str, label: str, visible: bool = True):
+    def __init__(
+        self, renderer: "Renderer", uuid: str, label: str, visible: bool = True
+    ):
         self.renderer = renderer
         self._uuid = uuid
         self._label = label
         self._visible = visible
         self._size_tracker = None
-        self._data: Optional[dict] = None
+        self._data: dict | None = None
         self._lines = None
         self._images = None
         self._glyph_ranges = None
@@ -205,16 +219,15 @@ class LayerInfo:
         self.update_data()
 
     @classmethod
-    def from_dict(cls, renderer: 'Renderer', layer_info: dict):
+    def from_dict(cls, renderer: "Renderer", layer_info: dict):
         return cls(
-            renderer,
-            layer_info['groupId'],
-            layer_info['label'],
-            layer_info['visible']
+            renderer, layer_info["groupId"], layer_info["label"], layer_info["visible"]
         )
 
     def update_size_tracker(self):
-        self._size_tracker = SizeTracker.from_dict(self, self.renderer.get_size_tracker_dict(self.uuid))
+        self._size_tracker = SizeTracker.from_dict(
+            self, self.renderer.get_size_tracker_dict(self.uuid)
+        )
 
     @property
     def uuid(self) -> str:
@@ -229,13 +242,13 @@ class LayerInfo:
         return self._visible
 
     @property
-    def size_tracker(self) -> Optional[SizeTracker]:
+    def size_tracker(self) -> SizeTracker | None:
         if self._size_tracker is None:
             self.update_size_tracker()
         return self._size_tracker
 
     @property
-    def lines(self) -> List[LineInfo]:
+    def lines(self) -> list[LineInfo]:
         if self._lines is None:
             self.update_lines()
         return self._lines
@@ -243,7 +256,9 @@ class LayerInfo:
     def update_lines(self):
         if not self._data:
             return self.update_data()
-        self._lines = [LineInfo.from_dict(line_info) for line_info in self._data.get('lines', [])]
+        self._lines = [
+            LineInfo.from_dict(line_info) for line_info in self._data.get("lines", [])
+        ]
 
     @property
     def images(self):
@@ -254,7 +269,10 @@ class LayerInfo:
     def update_images(self):
         if not self._data:
             return self.update_data()
-        self._images = [ImageInfo.from_dict(image_info) for image_info in self._data.get('images', [])]
+        self._images = [
+            ImageInfo.from_dict(image_info)
+            for image_info in self._data.get("images", [])
+        ]
 
     @property
     def glyph_ranges(self):
@@ -265,16 +283,18 @@ class LayerInfo:
     def update_glyph_ranges(self):
         if not self._data:
             return self.update_data()
-        self._glyph_ranges = [GlyphRangeInfo.from_dict(glyph_range_info) for glyph_range_info in
-                              self._data.get('glyphRanges', [])]
+        self._glyph_ranges = [
+            GlyphRangeInfo.from_dict(glyph_range_info)
+            for glyph_range_info in self._data.get("glyphRanges", [])
+        ]
 
     def update_data(self):
         self._data = self.renderer.get_layer_full_dict(self.uuid)
 
         # Update basic layer info
-        self._label = self._data.get('label', self.label)
-        self._uuid = self._data.get('groupId', self.uuid)
-        self._visible = self._data.get('visible', self.visible)
+        self._label = self._data.get("label", self.label)
+        self._uuid = self._data.get("groupId", self.uuid)
+        self._visible = self._data.get("visible", self.visible)
 
         # Update item info
         self.update_lines()
@@ -284,28 +304,41 @@ class LayerInfo:
 
 class Renderer:
     uuid: bytes
-    _paragraphs: Optional[List[Paragraph]]
-    _layers: Optional[List[LayerInfo]]
-    scene_tree = 'SceneTree'
+    _paragraphs: list[Paragraph] | None
+    _layers: list[LayerInfo] | None
+    scene_tree = "SceneTree"
 
-    def __init__(self, scene_tree: 'SceneTree', page_type: PageType = None, landscape: bool = None):
+    def __init__(
+        self,
+        scene_tree: "SceneTree",
+        page_type: PageType | None = None,
+        landscape: bool | None = None,
+    ):
         self.scene_tree = scene_tree
         self._paragraphs = None
         self._layers = None
         self._config = None
         self._backdrop_ptr = None
-        self._template = 'Blank'
+        self._template = "Blank"
         self._layers_index = {}
         if not landscape:
             if scene_tree.document:
                 landscape = scene_tree.document.content.is_landscape
             else:
-                raise ValueError("Missing value for landscape and cannot infer from document")
+                raise ValueError(
+                    "Missing value for landscape and cannot infer from document"
+                )
         if not page_type:
             if scene_tree.document:
-                page_type = PageType.Notebook if scene_tree.document.content.file_type == FileTypes.Notebook.value else PageType.Document
+                page_type = (
+                    PageType.Notebook
+                    if scene_tree.document.content.file_type == FileTypes.Notebook.value
+                    else PageType.Document
+                )
             else:
-                raise ValueError("Missing value for page_type and cannot infer from document type")
+                raise ValueError(
+                    "Missing value for page_type and cannot infer from document type"
+                )
 
         self.uuid = lib.makeRenderer(self.scene_tree.uuid, page_type.value, landscape)
 
@@ -316,26 +349,43 @@ class Renderer:
             # You shouldn't need to catch this exception, but if you do, please report it!
             raise FailedToMakeRenderer()
 
-        page = self.scene_tree.document.content.c_pages.get_page_from_uuid(self.scene_tree.page_uuid)
-        setattr(page, 'renderer', self)
+        page = self.scene_tree.document.content.c_pages.get_page_from_uuid(
+            self.scene_tree.page_uuid
+        )
+        page.renderer = self
 
         self.landscape = landscape
         self.page_type = page_type
         self.scene_tree.renderer = self
         if scene_tree.document:
-            self.template = scene_tree.document.content.c_pages.get_page_from_uuid(scene_tree.page_uuid).template.value
+            self.template = scene_tree.document.content.c_pages.get_page_from_uuid(
+                scene_tree.page_uuid
+            ).template.value
 
             if scene_tree.image_info:
                 for uuid, filename in scene_tree.image_info.iter_uuid_filenames():
-                    file_uuid = f'{scene_tree.document.uuid}/{scene_tree.page_uuid}/{filename}'
+                    file_uuid = (
+                        f"{scene_tree.document.uuid}/{scene_tree.page_uuid}/{filename}"
+                    )
                     file = scene_tree.document.file_uuid_map.get(file_uuid)
                     if file:
-                        lib.addImage(self.uuid, uuid.encode(), scene_tree.document.get_file(file.hash).encode())
+                        lib.addImage(
+                            self.uuid,
+                            uuid.encode(),
+                            scene_tree.document.get_file(file.hash).encode(),
+                        )
 
         self._update_paragraphs()
         self._update_layers()
 
-    def set_backdrop_raw(self, backdrop_ptr: Array[c_ubyte], size: int, width: int, height: int, stride: int):
+    def set_backdrop_raw(
+        self,
+        backdrop_ptr: Array[c_ubyte],
+        size: int,
+        width: int,
+        height: int,
+        stride: int,
+    ):
         """
         Set a backdrop from a raw pointer. The pointer should point to a buffer in RGBA format, with 4 bytes per pixel.
 
@@ -349,7 +399,13 @@ class Renderer:
         self._backdrop_ptr = backdrop_ptr
         lib.setBackdrop(self.uuid, self._backdrop_ptr, size, width, height, stride)
 
-    def set_backdrop_buffer(self, buffer: bytes | bytearray, width: int, height: int, stride: int | None = None):
+    def set_backdrop_buffer(
+        self,
+        buffer: bytes | bytearray,
+        width: int,
+        height: int,
+        stride: int | None = None,
+    ):
         """
         Set a backdrop from bytes buffer. The buffer should be in RGBA format, with 4 bytes per pixel.
 
@@ -360,7 +416,9 @@ class Renderer:
         :return:
         """
         self._backdrop_ptr = (c_ubyte * len(buffer)).from_buffer_copy(buffer)
-        self.set_backdrop_raw(self._backdrop_ptr, len(buffer), width, height, stride or width * 4)
+        self.set_backdrop_raw(
+            self._backdrop_ptr, len(buffer), width, height, stride or width * 4
+        )
 
     def set_backdrop_image(self, image: PILImage.Image):
         """
@@ -369,13 +427,13 @@ class Renderer:
         :param image:
         :return:
         """
-        image = image.convert('RGBA')
+        image = image.convert("RGBA")
 
         buffer = image.tobytes()
         stride = image.width * len(image.getbands())
         self.set_backdrop_buffer(buffer, image.width, image.height, stride)
 
-    def set_backdrop_pymupdf(self, pdf_page: 'Page', dpi: Optional[int] = 227):
+    def set_backdrop_pymupdf(self, pdf_page: "Page", dpi: int | None = 227):
         """
         Set a backdrop from a PyMuPDF page. The page will be rendered to an RGBA image.
 
@@ -394,7 +452,7 @@ class Renderer:
         return self._config
 
     @property
-    def paper_size(self) -> Tuple[int, int]:
+    def paper_size(self) -> tuple[int, int]:
         if self.scene_tree.scene_info and self.scene_tree.scene_info.paper_size:
             paper_size = self.scene_tree.scene_info.paper_size
         else:
@@ -412,72 +470,72 @@ class Renderer:
         lib.setTemplate(self.uuid, value.encode())
         self._template = value
 
-    def get_paragraphs_raw(self) -> Optional[bytes]:
+    def get_paragraphs_raw(self) -> bytes | None:
         raw = lib.getParagraphs(self.uuid)
-        if raw == b'':
+        if raw == b"":
             return None
         return raw
 
-    def get_paragraphs_dict(self) -> Optional[List[dict]]:
+    def get_paragraphs_dict(self) -> list[dict] | None:
         raw = self.get_paragraphs_raw()
         if raw is None:
             return None
         return json.loads(raw.decode())
 
-    def get_paragraphs(self) -> Optional[List[Paragraph]]:
+    def get_paragraphs(self) -> list[Paragraph] | None:
         paragraphs = self.get_paragraphs_dict()
         if not paragraphs:
             return None
         return [Paragraph.from_dict(self, paragraph) for paragraph in paragraphs]
 
-    def get_layers_raw(self) -> Optional[bytes]:
+    def get_layers_raw(self) -> bytes | None:
         raw = lib.getLayers(self.uuid)
-        if raw == b'':
+        if raw == b"":
             return None
         return raw
 
-    def get_layers_dict(self) -> Optional[List[dict]]:
+    def get_layers_dict(self) -> list[dict] | None:
         raw = self.get_layers_raw()
         if raw is None:
             return None
         return json.loads(raw.decode())
 
-    def get_layers(self) -> Optional[List[LayerInfo]]:
+    def get_layers(self) -> list[LayerInfo] | None:
         layers = self.get_layers_dict()
         if not layers:
             return None
         return [LayerInfo.from_dict(self, layer) for layer in layers]
 
-    def get_layer_by_uuid(self, layer_uuid: str) -> Optional[LayerInfo]:
+    def get_layer_by_uuid(self, layer_uuid: str) -> LayerInfo | None:
         if not self._layers_index:
             self._update_layers()
         return self._layers_index.get(layer_uuid, None)
 
-    def get_size_tracker_raw(self, layer_uuid: str) -> Optional[bytes]:
+    def get_size_tracker_raw(self, layer_uuid: str) -> bytes | None:
         raw = lib.getSizeTracker(self.uuid, layer_uuid.encode())
-        if raw == b'':
+        if raw == b"":
             return None
         return raw
 
-    def get_size_tracker_dict(self, layer_uuid: str) -> Optional[dict]:
+    def get_size_tracker_dict(self, layer_uuid: str) -> dict | None:
         raw = self.get_size_tracker_raw(layer_uuid)
         if raw is None:
             return None
         return json.loads(raw.decode())
 
-    def get_layer_full_raw(self, layer_uuid: str) -> Optional[bytes]:
+    def get_layer_full_raw(self, layer_uuid: str) -> bytes | None:
         raw = lib.getLayerFull(self.uuid, layer_uuid.encode())
-        if raw == b'':
+        if raw == b"":
             return None
         return raw
 
-    def get_layer_full_dict(self, layer_uuid: str) -> Optional[dict]:
+    def get_layer_full_dict(self, layer_uuid: str) -> dict | None:
         raw = self.get_layer_full_raw(layer_uuid)
         if raw is None:
             return None
         return json.loads(raw.decode())
 
-    def get_size_tracker(self, layer_uuid: str) -> Optional[SizeTracker]:
+    def get_size_tracker(self, layer_uuid: str) -> SizeTracker | None:
         layer = self.get_layer_by_uuid(layer_uuid)
         if not layer:
             return None
@@ -488,58 +546,87 @@ class Renderer:
 
     def _update_layers(self):
         self._layers = self.get_layers()
-        self._layers_index = {layer.uuid: layer for layer in self._layers} if self._layers else {}
+        self._layers_index = (
+            {layer.uuid: layer for layer in self._layers} if self._layers else {}
+        )
 
     @property
-    def paragraphs(self) -> Optional[List[Paragraph]]:
+    def paragraphs(self) -> list[Paragraph] | None:
         if self._paragraphs is None:
             self._update_paragraphs()
         return self._paragraphs
 
     @property
-    def layers(self) -> Optional[List[LayerInfo]]:
+    def layers(self) -> list[LayerInfo] | None:
         if self._layers is None:
             self._update_layers()
         return self._layers
 
-    def to_md_file(self, output_file: Union[os.PathLike, str]):
+    def to_md_file(self, output_file: os.PathLike | str):
         success = lib.textToMdFile(self.uuid, os.fspath(output_file).encode())
         if not success:
             raise FailedToConvertToMd()
 
     def to_md_raw(self) -> str:
         raw = lib.textToMd(self.uuid)
-        if raw == b'':
+        if raw == b"":
             raise FailedToConvertToMd()
         return raw.decode()
 
-    def to_txt_file(self, output_file: Union[os.PathLike, str]):
+    def to_txt_file(self, output_file: os.PathLike | str):
         success = lib.textToTxtFile(self.uuid, os.fspath(output_file).encode())
         if not success:
             raise FailedToConvertToTxt()
 
     def to_txt_raw(self) -> str:
         raw = lib.textToTxt(self.uuid)
-        if raw == b'':
+        if raw == b"":
             raise FailedToConvertToTxt()
         return raw.decode()
 
-    def get_frame_raw(self, x: int, y: int, frame_width: int, frame_height: int, width: int, height: int,
-                      antialias: bool = False) -> bytes:
+    def get_frame_raw(
+        self,
+        x: int,
+        y: int,
+        frame_width: int,
+        frame_height: int,
+        width: int,
+        height: int,
+        antialias: bool = False,
+    ) -> bytes:
         buffer_size = width * height
         buffer = (c_uint32 * buffer_size)()
 
-        lib.getFrame(self.uuid, buffer, buffer_size * 4, x, y, frame_width, frame_height, width, height, antialias)
+        lib.getFrame(
+            self.uuid,
+            buffer,
+            buffer_size * 4,
+            x,
+            y,
+            frame_width,
+            frame_height,
+            width,
+            height,
+            antialias,
+        )
         return bytes(buffer)
 
-    def to_image_raw(self, antialias: bool = False) -> Tuple[bytes, Tuple[int, int]]:
-        return self.get_frame_raw(0, 0, *self.paper_size, *self.paper_size, antialias), self.paper_size
+    def to_image_raw(self, antialias: bool = False) -> tuple[bytes, tuple[int, int]]:
+        return (
+            self.get_frame_raw(0, 0, *self.paper_size, *self.paper_size, antialias),
+            self.paper_size,
+        )
 
     def to_image(self, antialias: bool = False) -> PILImage.Image:
         raw_frame, size = self.to_image_raw(antialias)
-        return PILImage.frombytes('RGBA', size, raw_frame, 'raw', 'RGBA')
+        return PILImage.frombytes("RGBA", size, raw_frame, "raw", "RGBA")
 
-    def to_image_file(self, output_file: Union[os.PathLike, str], antialias: bool = False, image_format: str = 'PNG'):
+    def to_image_file(
+        self,
+        output_file: os.PathLike | str,
+        antialias: bool = False,
+        image_format: str = "PNG",
+    ):
         image = self.to_image(antialias)
         image.save(os.fspath(output_file), image_format)
 
@@ -547,7 +634,7 @@ class Renderer:
         if not self.uuid:
             return
         lib.destroyRenderer(self.uuid)
-        self.uuid = b''
+        self.uuid = b""
 
     def __del__(self):
         self.destroy()

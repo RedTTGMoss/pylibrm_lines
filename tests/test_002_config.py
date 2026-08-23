@@ -1,6 +1,7 @@
 from pylibrm_lines.renderer import ALL_PEN_IDS, get_pen_repr
 from tests.base import BaseTest
 
+
 class TestConfig(BaseTest):
 
     def test_001_test_getting_renderer_config(self):
@@ -20,14 +21,20 @@ class TestConfig(BaseTest):
         for renderer in self.renderers:
             config = renderer.config
             for pen_id in ALL_PEN_IDS:
-                self.assertTrue(pen_id in config.allowed_pens, f"Pen {get_pen_repr(pen_id)}({pen_id}) should be in allowed_pens")
+                self.assertTrue(
+                    pen_id in config.allowed_pens,
+                    f"Pen {get_pen_repr(pen_id)}({pen_id}) should be in allowed_pens",
+                )
             self.assertEqual(len(config._disallowed_pens), 0)
             self.assertEqual(len(config.disallowed_pens), 0)
             config.use_whitelist = True
             self.assertEqual(len(config._allowed_pens), 0)
             self.assertEqual(len(config.allowed_pens), 0)
             for pen_id in ALL_PEN_IDS:
-                self.assertTrue(pen_id in config.disallowed_pens, f"Pen {get_pen_repr(pen_id)}({pen_id}) should be in disallowed_pens")
+                self.assertTrue(
+                    pen_id in config.disallowed_pens,
+                    f"Pen {get_pen_repr(pen_id)}({pen_id}) should be in disallowed_pens",
+                )
 
             config.use_whitelist = False
 
@@ -58,4 +65,3 @@ class TestConfig(BaseTest):
             self.assertTrue(ALL_PEN_IDS[0] not in config.allowed_pens)
             self.assertTrue(ALL_PEN_IDS[0] in config.disallowed_pens)
             config.use_whitelist = False
-

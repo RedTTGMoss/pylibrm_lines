@@ -1,5 +1,7 @@
 class PointItem:
-    def __init__(self, x: float, y: float, speed: int, direction: int, width: int, pressure: int):
+    def __init__(
+        self, x: float, y: float, speed: int, direction: int, width: int, pressure: int
+    ):
         self.x = x
         self.y = y
         self.speed = speed
@@ -12,15 +14,15 @@ class PointItem:
     @classmethod
     def from_dict(cls, data: dict):
         item = cls(
-            x=data.get('x'),
-            y=data.get('y'),
-            speed=data.get('speed'),
-            direction=data.get('direction'),
-            width=data.get('width'),
-            pressure=data.get('pressure')
+            x=data.get("x"),
+            y=data.get("y"),
+            speed=data.get("speed"),
+            direction=data.get("direction"),
+            width=data.get("width"),
+            pressure=data.get("pressure"),
         )
         for key, value in data.items():
-            if key.startswith('_calc_'):
+            if key.startswith("_calc_"):
                 item._calc[key[6:]] = value
         return item
 
@@ -33,5 +35,6 @@ class PointItem:
         """
         if not self._calc:
             raise ValueError(
-                "No calculation data available. Ensure 'stroker_data_in_json' is enabled and the layer data is refreshed.")
+                "No calculation data available. Ensure 'stroker_data_in_json' is enabled and the layer data is refreshed."
+            )
         return self._calc

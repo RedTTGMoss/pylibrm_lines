@@ -7,35 +7,35 @@ However, these are basic functions that shouldn't fail under normal circumstance
 """
 
 import ctypes
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from rm_lines_sys import lib
 
 LOG_FUNCTION_TYPE = Callable[[str], None]
-LOG_FUNC: Optional[LOG_FUNCTION_TYPE] = None
-ERR_FUNC: Optional[LOG_FUNCTION_TYPE] = None
-DEBUG_FUNC: Optional[LOG_FUNCTION_TYPE] = None
+LOG_FUNC: LOG_FUNCTION_TYPE | None = None
+ERR_FUNC: LOG_FUNCTION_TYPE | None = None
+DEBUG_FUNC: LOG_FUNCTION_TYPE | None = None
 
 
 @ctypes.CFUNCTYPE(None, ctypes.c_char_p)
 def python_log_logger(msg):
     if LOG_FUNC is None:
         pass
-    LOG_FUNC(msg.decode('utf-8', errors='replace'))
+    LOG_FUNC(msg.decode("utf-8", errors="replace"))
 
 
 @ctypes.CFUNCTYPE(None, ctypes.c_char_p)
 def python_error_logger(msg):
     if ERR_FUNC is None:
         pass
-    ERR_FUNC(msg.decode('utf-8', errors='replace'))
+    ERR_FUNC(msg.decode("utf-8", errors="replace"))
 
 
 @ctypes.CFUNCTYPE(None, ctypes.c_char_p)
 def python_debug_logger(msg):
     if DEBUG_FUNC is None:
         pass
-    DEBUG_FUNC(msg.decode('utf-8', errors='replace'))
+    DEBUG_FUNC(msg.decode("utf-8", errors="replace"))
 
 
 def set_debug_mode(debug: bool):

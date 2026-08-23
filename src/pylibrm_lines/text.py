@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pylibrm_lines.renderer import Renderer
@@ -18,11 +18,13 @@ class TextFormattingOptions:
 
 
 class FormattedText:
-    renderer: 'Renderer'
+    renderer: "Renderer"
     text: str
     formatting: TextFormattingOptions
 
-    def __init__(self, renderer: 'Renderer', text: str, formatting: TextFormattingOptions):
+    def __init__(
+        self, renderer: "Renderer", text: str, formatting: TextFormattingOptions
+    ):
         self.renderer = renderer
         self._text = text
         self._formatting = formatting
@@ -31,8 +33,8 @@ class FormattedText:
     def from_dict(cls, renderer, formatted_text):
         return cls(
             renderer,
-            formatted_text['text'],
-            TextFormattingOptions.from_dict(formatted_text['formatting']),
+            formatted_text["text"],
+            TextFormattingOptions.from_dict(formatted_text["formatting"]),
         )
 
     @property
@@ -62,8 +64,15 @@ class ParagraphStyle(Enum):
 class ParagraphStyleNew:
     legacy_style: ParagraphStyle
 
-    def __init__(self, legacy_style: ParagraphStyle, base_style: int, style_properties: int, tab_offset: float,
-                 tabbed: int, is_legacy: bool = True):
+    def __init__(
+        self,
+        legacy_style: ParagraphStyle,
+        base_style: int,
+        style_properties: int,
+        tab_offset: float,
+        tabbed: int,
+        is_legacy: bool = True,
+    ):
         self.legacy_style = legacy_style
         self.base_style = base_style
         self.style_properties = style_properties
@@ -75,41 +84,50 @@ class ParagraphStyleNew:
     @classmethod
     def from_dict(cls, data: dict):
         new = cls(
-            ParagraphStyle(data.get('legacyStyle')),
-            data.get('baseStyle'),
-            data.get('styleProperties'),
-            data.get('tabOffset'),
-            data.get('tabbed'),
-            is_legacy=data.get('isLegacy', True),
+            ParagraphStyle(data.get("legacyStyle")),
+            data.get("baseStyle"),
+            data.get("styleProperties"),
+            data.get("tabOffset"),
+            data.get("tabbed"),
+            is_legacy=data.get("isLegacy", True),
         )
-        new.extra['_fontSize'] = data.get('_fontSize')
-        new.extra['_styleHeight'] = data.get('_styleHeight')
-        new.extra['_styleLabel'] = data.get('_styleLabel')
+        new.extra["_fontSize"] = data.get("_fontSize")
+        new.extra["_styleHeight"] = data.get("_styleHeight")
+        new.extra["_styleLabel"] = data.get("_styleLabel")
 
 
 class Paragraph:
-    renderer: 'Renderer'
-    contents: List[FormattedText]
+    renderer: "Renderer"
+    contents: list[FormattedText]
     start_id: str
     style: ParagraphStyle
 
-    def __init__(self, renderer: 'Renderer', contents: List[FormattedText], start_id: str, style: ParagraphStyleNew):
+    def __init__(
+        self,
+        renderer: "Renderer",
+        contents: list[FormattedText],
+        start_id: str,
+        style: ParagraphStyleNew,
+    ):
         self.renderer = renderer
         self._contents = contents
         self._start_id = start_id
         self._style = style
 
     @classmethod
-    def from_dict(cls, renderer: 'Renderer', paragraph):
+    def from_dict(cls, renderer: "Renderer", paragraph):
         return cls(
             renderer,
-            [FormattedText.from_dict(renderer, formatted_text) for formatted_text in paragraph['contents']],
-            paragraph['startId'],
-            ParagraphStyleNew.from_dict(paragraph['style'])
+            [
+                FormattedText.from_dict(renderer, formatted_text)
+                for formatted_text in paragraph["contents"]
+            ],
+            paragraph["startId"],
+            ParagraphStyleNew.from_dict(paragraph["style"]),
         )
 
     @property
-    def contents(self) -> List[FormattedText]:
+    def contents(self) -> list[FormattedText]:
         return self._contents
 
     @property

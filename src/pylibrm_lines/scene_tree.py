@@ -1,52 +1,54 @@
 import json
 import os
-from typing import Optional, Union, List, Dict, Generator, Tuple
+from collections.abc import Generator
 
-from rm_api import Document, API
+from rm_api import API, Document
 from rm_api.models import TimestampedValue
 from rm_lines_sys import lib
 
-from .scene_info import SceneInfo
 from .exceptions import *
+from .scene_info import SceneInfo
+
 
 class ImageRecordInfo:
     uuid: str
     filename: TimestampedValue[str]
-    flags: TimestampedValue[List[int]]
+    flags: TimestampedValue[list[int]]
+
 
 class ImageInfo:
-    scene_tree: 'SceneTree'
-    images: Dict[str, ImageRecordInfo]
+    scene_tree: "SceneTree"
+    images: dict[str, ImageRecordInfo]
 
-    def __init__(self, scene_tree: 'SceneTree'):
+    def __init__(self, scene_tree: "SceneTree"):
         self.scene_tree = scene_tree
         self.images = {}
 
-    def iter_uuid_filenames(self) -> Generator[Tuple[str, str], None, None]:
-        return (
-            (uuid, record.filename.value)
-            for uuid, record in self.images.items()
-        )
+    def iter_uuid_filenames(self) -> Generator[tuple[str, str], None, None]:
+        return ((uuid, record.filename.value) for uuid, record in self.images.items())
 
     @classmethod
-    def from_dict(cls, scene_tree: 'SceneTree', image_info_dict: dict):
+    def from_dict(cls, scene_tree: "SceneTree", image_info_dict: dict):
         image_info = cls(scene_tree)
         for uuid, record in image_info_dict.items():
             record_info = ImageRecordInfo()
             record_info.uuid = uuid
-            record_info.filename = TimestampedValue(record['fileName'])
-            record_info.flags = TimestampedValue(record['flags'])
+            record_info.filename = TimestampedValue(record["fileName"])
+            record_info.flags = TimestampedValue(record["flags"])
             image_info.images[uuid] = record_info
         return image_info
 
+
 class SceneTree:
     uuid: bytes
-    document: Optional[Document]
-    page_uuid: Optional[str]
-    _scene_info: Optional[SceneInfo]
-    _image_info: Optional[ImageInfo]
+    document: Document | None
+    page_uuid: str | None
+    _scene_info: SceneInfo | None
+    _image_info: ImageInfo | None
 
-    def __init__(self, uuid: bytes = b'', document: Document = None, page_uuid: str = None):
+    def __init__(
+        self, uuid: bytes = b"", document: Document = None, page_uuid: str | None = None
+    ):
         if not lib:
             # Prevent creating new instances of scene tree if the library is missing
             raise LibMissing()
@@ -59,13 +61,13 @@ class SceneTree:
         self._image_info = None
 
     @property
-    def api(self) -> Optional[API]:
+    def api(self) -> API | None:
         return self.document.api if self.document else None
 
     @classmethod
     def from_document(cls, document: Document, page_uuid: str):
         new = cls(document=document, page_uuid=page_uuid)
-        page_file_uuid = f'{document.uuid}/{page_uuid}.rm'
+        page_file_uuid = f"{document.uuid}/{page_uuid}.rm"
         file = new.document.files_available.get(page_file_uuid)
         if file is None:
             raise FileNotFoundError("Could not find the lines file for this page_uuid")
@@ -77,7 +79,7 @@ class SceneTree:
             raise FailedToBuildTree()
 
         page = new.document.content.c_pages.get_page_from_uuid(page_uuid)
-        setattr(page, 'tree', new)
+        page.tree = new
 
         return new
 
@@ -85,12 +87,14 @@ class SceneTree:
     def renderer(self):
         if not self._renderer:
             from pylibrm_lines.renderer import Renderer
+
             self._renderer = Renderer(self)
         return self._renderer
 
     @renderer.setter
     def renderer(self, value):
         from pylibrm_lines.renderer import Renderer
+
         if not isinstance(value, Renderer):
             raise TypeError("Renderer must be an instance of Renderer class")
         self._renderer = value
@@ -101,14 +105,14 @@ class SceneTree:
             self._renderer.destroy()
             self._renderer = None
 
-    def to_json_file(self, output_file: Union[os.PathLike, str]):
+    def to_json_file(self, output_file: os.PathLike | str):
         success = lib.convertToJsonFile(self.uuid, os.fspath(output_file).encode())
         if not success:
             raise FailedToConvertToJson()
 
     def to_json_raw(self) -> str:
         raw = lib.convertToJson(self.uuid)
-        if raw == b'':
+        if raw == b"":
             raise FailedToConvertToJson()
         return raw.decode()
 
@@ -117,7 +121,7 @@ class SceneTree:
         return json.loads(raw)
 
     @property
-    def scene_info(self) -> Optional[SceneInfo]:
+    def scene_info(self) -> SceneInfo | None:
         if not self._scene_info:
             try:
                 self._scene_info = SceneInfo(self)
@@ -125,19 +129,19 @@ class SceneTree:
                 return None
         return self._scene_info
 
-    def get_image_info_raw(self) -> Optional[bytes]:
+    def get_image_info_raw(self) -> bytes | None:
         raw = lib.getImageInfo(self.uuid)
-        if raw == b'':
+        if raw == b"":
             return None
         return raw
 
-    def get_image_info_dict(self) -> Optional[dict]:
+    def get_image_info_dict(self) -> dict | None:
         raw = self.get_image_info_raw()
         if raw is None:
             return None
         return json.loads(raw.decode())
 
-    def get_image_info(self) -> Optional[ImageInfo]:
+    def get_image_info(self) -> ImageInfo | None:
         if not self._image_info:
             image_info_dict = self.get_image_info_dict()
             if image_info_dict is None:
@@ -146,9 +150,8 @@ class SceneTree:
         return self._image_info
 
     @property
-    def image_info(self) -> Optional[ImageInfo]:
+    def image_info(self) -> ImageInfo | None:
         return self.get_image_info()
-
 
     def destroy(self):
         """Destroying the scene tree will also destroy the renderer if it exists."""
@@ -156,7 +159,7 @@ class SceneTree:
             raise ValueError("Could not destroy tree, uuid is empty")
         del self.renderer
         lib.destroyTree(self.uuid)
-        self.uuid = b''
+        self.uuid = b""
 
     def __del__(self):
         """Deleting the scene tree calls the library to destroy the tree."""

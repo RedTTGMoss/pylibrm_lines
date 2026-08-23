@@ -1,5 +1,5 @@
 import json
-from typing import TYPE_CHECKING, Tuple, List, Optional
+from typing import TYPE_CHECKING
 
 from rm_lines_sys import lib
 
@@ -11,15 +11,15 @@ if TYPE_CHECKING:
 
 class SceneInfo:
     _scene_info: dict = None
-    scene_tree: 'SceneTree'
+    scene_tree: "SceneTree"
 
-    def __init__(self, scene_tree: 'SceneTree'):
+    def __init__(self, scene_tree: "SceneTree"):
         self.scene_tree = scene_tree
         self.update_scene_info()
 
     def get_raw(self) -> bytes:
         raw = lib.getSceneInfo(self.scene_tree.uuid)
-        if raw == b'':
+        if raw == b"":
             raise NoSceneInfo()
         return raw
 
@@ -34,7 +34,7 @@ class SceneInfo:
         return self._scene_info["currentLayer"]
 
     @property
-    def background_visible(self) -> Optional[bool]:
+    def background_visible(self) -> bool | None:
         """
         This refers to the template.
         If the layer is hidden
@@ -42,7 +42,7 @@ class SceneInfo:
         return self._scene_info["backgroundVisible"]
 
     @property
-    def root_document_visible(self) -> Optional[bool]:
+    def root_document_visible(self) -> bool | None:
         """
         This refers to the root text document
         If the layer is hidden in the layers or not
@@ -50,7 +50,7 @@ class SceneInfo:
         return self._scene_info["rootDocumentVisible"]
 
     @property
-    def paper_size(self) -> Optional[Tuple[int, int]]:
+    def paper_size(self) -> tuple[int, int] | None:
         """
         This is a new value for the size of the page/paper as it's called by rM.
         It is used by RMPP to signal that it is larger sized. It is generally blank for RM2
@@ -59,7 +59,7 @@ class SceneInfo:
         return self._scene_info["paperSize"]
 
     @property
-    def paper_width(self) -> Optional[int]:
+    def paper_width(self) -> int | None:
         """
         This a shortcut to paper_size[0]
         """
@@ -68,7 +68,7 @@ class SceneInfo:
         return None
 
     @property
-    def paper_height(self) -> Optional[int]:
+    def paper_height(self) -> int | None:
         """
         This a shortcut to paper_size[1]
         """
