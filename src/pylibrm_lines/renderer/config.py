@@ -192,19 +192,19 @@ class RendererConfig:
                     break
 
     def enable_pen(self, pen_id: int):
-        if pen_id not in ALL_PEN_IDS:
-            raise ValueError(f"Invalid pen ID: {pen_id}")
         if pen_id in PEN_COMBINED_VERSIONS:
             for sub_pen in PEN_COMBINED_VERSIONS[pen_id]:
                 self._enable_pen(sub_pen)
+        elif pen_id not in ALL_PEN_IDS:
+            raise ValueError(f"Invalid pen ID: {pen_id}")
         else:
             self._enable_pen(pen_id)
 
     def disable_pen(self, pen_id: int):
-        if pen_id not in ALL_PEN_IDS:
-            raise ValueError(f"Invalid pen ID: {pen_id}")
         if pen_id in PEN_COMBINED_VERSIONS:
             for sub_pen in PEN_COMBINED_VERSIONS[pen_id]:
                 self._disable_pen(sub_pen)
+        elif pen_id not in ALL_PEN_IDS:
+            raise ValueError(f"Invalid pen ID: {pen_id}")
         else:
             self._disable_pen(pen_id)
