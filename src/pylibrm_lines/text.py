@@ -95,12 +95,14 @@ class ParagraphStyleNew:
         new.extra["_styleHeight"] = data.get("_styleHeight")
         new.extra["_styleLabel"] = data.get("_styleLabel")
 
+        return new
+
 
 class Paragraph:
     renderer: "Renderer"
     contents: list[FormattedText]
     start_id: str
-    style: ParagraphStyle
+    style: ParagraphStyleNew
 
     def __init__(
         self,
@@ -135,5 +137,5 @@ class Paragraph:
         return self._start_id
 
     @property
-    def style(self) -> ParagraphStyle:
+    def style(self) -> ParagraphStyleNew:
         return self._style
