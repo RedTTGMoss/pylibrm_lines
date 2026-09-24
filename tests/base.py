@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import ClassVar
 
 from rm_api.models import LocalDocument
-
+from .conftest import TEST_FILE
 from pylibrm_lines import set_debug_logger, set_debug_mode, set_error_logger, set_logger
 from pylibrm_lines.renderer import Renderer
 from pylibrm_lines import SceneTree, SceneInfo
@@ -19,6 +19,7 @@ JSON_DIRECTORY = RESULTS_DIRECTORY / "json"
 PARAGRAPHS_DIRECTORY = RESULTS_DIRECTORY / "paragraphs"
 LAYER_FULL_DIRECTORY = RESULTS_DIRECTORY / "layer_full"
 PNG_DIRECTORY = RESULTS_DIRECTORY / "png"
+PNG_SIZED_DIRECTORY = RESULTS_DIRECTORY / "png_sized"
 PIL_BACKDROP_DIRECTORY = RESULTS_DIRECTORY / "pil_backdrop"
 PDF_BACKDROP_DIRECTORY = RESULTS_DIRECTORY / "pdf_backdrop"
 ZOOM_DIRECTORY = RESULTS_DIRECTORY / "zoom"
@@ -32,6 +33,7 @@ os.makedirs(RESULTS_DIRECTORY, exist_ok=True)
 os.makedirs(JSON_DIRECTORY, exist_ok=True)
 os.makedirs(PARAGRAPHS_DIRECTORY, exist_ok=True)
 os.makedirs(PNG_DIRECTORY, exist_ok=True)
+os.makedirs(PNG_SIZED_DIRECTORY, exist_ok=True)
 os.makedirs(LAYER_FULL_DIRECTORY, exist_ok=True)
 os.makedirs(PIL_BACKDROP_DIRECTORY, exist_ok=True)
 os.makedirs(PDF_BACKDROP_DIRECTORY, exist_ok=True)
@@ -67,7 +69,13 @@ class BaseTest(unittest.TestCase):
             if os.path.isdir(os.path.join(RESULTS_DIRECTORY, d))
         ]
 
-        for file in os.listdir(TESTS_DIRECTORY):
+        files = (
+            [TEST_FILE]
+            if TEST_FILE
+            else os.listdir(TESTS_DIRECTORY)
+        )
+
+        for file in files:
             cls.documents.append(
                 LocalDocument.load_rmdoc(os.path.join(TESTS_DIRECTORY, file))
             )
