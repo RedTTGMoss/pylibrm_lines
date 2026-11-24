@@ -5,8 +5,16 @@ from pathlib import Path
 from typing import ClassVar
 
 from rm_api.models import LocalDocument
+
+from pylibrm_lines.lib import set_permissive_mode, get_permissive_mode
 from .conftest import TEST_FILE
-from pylibrm_lines import set_debug_logger, set_debug_mode, set_error_logger, set_logger
+from pylibrm_lines import (
+    set_debug_logger,
+    set_debug_mode,
+    set_error_logger,
+    set_logger,
+    get_debug_mode,
+)
 from pylibrm_lines.renderer import Renderer
 from pylibrm_lines import SceneTree, SceneInfo
 
@@ -60,6 +68,10 @@ class BaseTest(unittest.TestCase):
         set_error_logger(lambda msg: logger.error(msg))
         set_logger(lambda msg: logger.info(msg))
         set_debug_mode(True)
+        set_permissive_mode(True)
+
+        assert get_debug_mode() is True
+        assert get_permissive_mode() is True
 
         # LOAD DOCUMENTS USING NEW DOCUMENT LOADING METHOD
         cls.documents = []
@@ -69,11 +81,7 @@ class BaseTest(unittest.TestCase):
             if os.path.isdir(os.path.join(RESULTS_DIRECTORY, d))
         ]
 
-        files = (
-            [TEST_FILE]
-            if TEST_FILE
-            else os.listdir(TESTS_DIRECTORY)
-        )
+        files = [TEST_FILE] if TEST_FILE else os.listdir(TESTS_DIRECTORY)
 
         for file in files:
             cls.documents.append(

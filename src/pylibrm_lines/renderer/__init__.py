@@ -14,6 +14,7 @@ from pylibrm_lines.exceptions import (
     FailedToConvertToMd,
     FailedToConvertToTxt,
     FailedToMakeRenderer,
+    EXCEPTIONS_LIBRM_LINES,
 )
 from pylibrm_lines.renderer.config import RendererConfig
 from pylibrm_lines.scene_items.glyph_range import GlyphRangeItem
@@ -342,12 +343,15 @@ class Renderer:
 
         self.uuid = lib.makeRenderer(self.scene_tree.uuid, page_type.value, landscape)
 
-        if not self.uuid:
+        if not self.uuid or self.uuid == b"-1":
             # RARE, this shouldn't happen,
             # unless there is a bug in how the renderer is loaded,
             # or the scene tree is corrupt
             # You shouldn't need to catch this exception, but if you do, please report it!
             raise FailedToMakeRenderer()
+        elif self.uuid[0] == 45:
+            err_code = int(self.uuid)
+            raise EXCEPTIONS_LIBRM_LINES.get(err_code, FailedToMakeRenderer)()
 
         page = self.scene_tree.document.content.c_pages.get_page_from_uuid(
             self.scene_tree.page_uuid

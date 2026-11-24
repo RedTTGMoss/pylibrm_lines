@@ -1,3 +1,6 @@
+from pylibrm_lines.lib import get_error_message
+
+
 class LibMissing(Exception):
     def __init__(self):
         super().__init__("LIB rm_lines was not loaded properly")
@@ -35,3 +38,15 @@ class FailedToConvertToTxt(Exception):
 class NoSceneInfo(Exception):
     def __init__(self):
         super().__init__("The scene tree has no scene info.")
+
+
+class GenericError(Exception):  # Librm_lines hook
+    def __init__(self):
+        err_msg = get_error_message()
+        super().__init__(f"{self.__class__.__name__}: {err_msg}")
+
+
+class TreeInstability(GenericError): ...
+
+
+EXCEPTIONS_LIBRM_LINES = {-1: FailedToMakeRenderer, -2: TreeInstability}

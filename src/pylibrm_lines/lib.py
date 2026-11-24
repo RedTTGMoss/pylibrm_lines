@@ -57,6 +57,34 @@ def get_debug_mode() -> bool:
     return lib.getDebugMode()
 
 
+def set_permissive_mode(debug: bool):
+    """
+    Set the permissive mode for the library.
+    This option allows some broken files to still render
+
+    :param debug: If True, enables permissive mode; otherwise, disables it.
+    """
+    lib.setPermissiveMode(debug)
+
+
+def get_permissive_mode() -> bool:
+    """
+    Check if the library is in permissive mode.
+
+    :return: True if permissive mode is enabled, False otherwise.
+    """
+    return lib.getPermissiveMode()
+
+
+def get_error_message() -> str:
+    """
+    Check if the library is in permissive mode.
+
+    :return: True if permissive mode is enabled, False otherwise.
+    """
+    return lib.getErrorMessage().decode()
+
+
 def set_logger(func: LOG_FUNCTION_TYPE):
     """
     Set a custom logging function for the library.
