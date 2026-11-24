@@ -15,7 +15,10 @@ class TestOutputs(BaseTest):
 
     def test_101_tree_get_scene_info(self):
         for tree in self.trees:
-            assert tree.scene_info is None or tree.scene_info.__class__.__name__ == SceneInfo.__name__
+            assert (
+                tree.scene_info is None
+                or tree.scene_info.__class__.__name__ == SceneInfo.__name__
+            )
 
     def test_102_renderer_to_md_file(self):
         for renderer in self.renderers:

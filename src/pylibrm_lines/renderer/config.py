@@ -1,4 +1,3 @@
-
 from rm_lines_sys import C_RendererConfig
 
 from pylibrm_lines.renderer.pens import ALL_PEN_IDS, PEN_COMBINED_VERSIONS

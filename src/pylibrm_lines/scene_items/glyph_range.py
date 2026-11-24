@@ -1,5 +1,3 @@
-
-
 class GlyphRangeItem:
     def __init__(
         self,

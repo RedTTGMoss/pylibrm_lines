@@ -70,9 +70,7 @@ PEN_REPRESENTATIONS = {
     PEN_SHADER: "Shader",
 }
 
-ALL_PEN_IDS = [
-    pen for pen in PEN_REPRESENTATIONS if pen not in PEN_COMBINED_VERSIONS
-]
+ALL_PEN_IDS = [pen for pen in PEN_REPRESENTATIONS if pen not in PEN_COMBINED_VERSIONS]
 
 
 def get_pen_repr(pen_id: int) -> str:

@@ -1,4 +1,3 @@
-
 from pylibrm_lines.scene_items.point import PointItem
 
 

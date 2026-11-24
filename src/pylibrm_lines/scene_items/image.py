@@ -1,4 +1,3 @@
-
 from rm_api.models import TimestampedValue
 
 
